@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Scientific Agent</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f2efe8;
+        --panel: #fffaf0;
+        --ink: #1f2a1f;
+        --muted: #5e665f;
+        --line: #d6cfbf;
+        --accent: #2f6c4f;
+      }
+
+      body {
+        margin: 0;
+        padding: 14px;
+        width: 360px;
+        background: linear-gradient(180deg, var(--bg), #ece6d7);
+        color: var(--ink);
+        font: 13px/1.45 "Segoe UI", sans-serif;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 10px 30px rgba(31, 42, 31, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .meta {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 4px;
+        font-weight: 600;
+      }
+
+      input, textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font: inherit;
+        background: #fffdf7;
+        color: var(--ink);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 54px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      button {
+        flex: 1;
+        border: 0;
+        border-radius: 999px;
+        padding: 9px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--accent);
+        color: white;
+      }
+
+      button.secondary {
+        background: #e4ddcc;
+        color: var(--ink);
+      }
+
+      #status {
+        margin-top: 10px;
+        white-space: pre-wrap;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>Scientific Agent</h1>
+      <div class="meta" id="paperSummary">Loading current page...</div>
+
+      <label for="serverUrl">Capture service</label>
+      <input id="serverUrl" type="text" value="http://127.0.0.1:8765">
+
+      <label for="team">Team override</label>
+      <input id="team" type="text" placeholder="Optional">
+
+      <label for="venueTier">Venue tier override</label>
+      <input id="venueTier" type="text" placeholder="Optional">
+
+      <label for="keywords">Manual labels</label>
+      <textarea id="keywords" placeholder="Comma-separated labels"></textarea>
+
+      <div class="actions">
+        <button class="secondary" id="captureOnly">Capture only</button>
+        <button class="primary" id="captureAndDownload">Capture + download</button>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="processQueue">Run download queue</button>
+      </div>
+
+      <div id="status"></div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

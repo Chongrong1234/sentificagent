@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scientific Agent</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Scientific Agent</p>
+          <h1>科研文献智能体</h1>
+          <p class="intro">
+            本地运行，Kimi 驱动。先聊天，再逐步更新你的研究兴趣、关键词、期刊会议权重和文献优先级。
+          </p>
+        </div>
+        <div class="status-card">
+          <div>模型</div>
+          <strong id="modelLabel">kimi-k2.5</strong>
+          <div>配置文件</div>
+          <code id="configPath">loading...</code>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="sidebar">
+          <label for="apiKey">Kimi API Key</label>
+          <input id="apiKey" type="password" placeholder="sk-...">
+
+          <label for="prompt">对智能体说</label>
+          <textarea id="prompt" placeholder="例如：帮我提高遥感与多模态农业方向的优先级，并补充顶会权重。"></textarea>
+
+          <button id="sendButton">发送</button>
+          <button id="applyButton" class="ghost" disabled>应用建议配置</button>
+          <button id="agentRunButton" class="ghost">应用配置并执行计划</button>
+
+          <div class="divider"></div>
+
+          <label for="searchQuery">批量检索主题</label>
+          <textarea id="searchQuery" placeholder="例如：large language model remote sensing agriculture"></textarea>
+
+          <div class="row">
+            <div>
+              <label for="maxResults">结果数</label>
+              <input id="maxResults" type="number" min="1" max="100" value="20">
+            </div>
+            <div>
+              <label for="minScore">下载阈值</label>
+              <input id="minScore" type="number" min="0" step="0.1" value="8.0">
+            </div>
+          </div>
+
+          <button id="searchButton">只检索</button>
+          <button id="searchDownloadButton" class="ghost">检索并批量下载</button>
+
+          <div class="hint">
+            当前界面不会把 API Key 写入仓库。你仍然应该尽快轮换刚才发出的那把 key。
+          </div>
+        </aside>
+
+        <section class="chat-panel">
+          <div class="panel">
+            <h2>对话</h2>
+            <pre id="chatOutput">等待输入...</pre>
+          </div>
+
+          <div class="panel">
+            <h2>建议配置补丁</h2>
+            <pre id="patchOutput">{}</pre>
+          </div>
+
+          <div class="panel">
+            <h2>智能体计划</h2>
+            <pre id="planOutput">{}</pre>
+          </div>
+
+          <div class="panel">
+            <h2>配置预览</h2>
+            <pre id="configOutput">loading...</pre>
+          </div>
+
+          <div class="panel">
+            <h2>批量检索结果</h2>
+            <pre id="searchOutput">等待检索...</pre>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

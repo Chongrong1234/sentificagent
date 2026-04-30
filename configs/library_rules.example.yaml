@@ -1,0 +1,208 @@
+storage:
+  root_dir: ../data/library
+  inbox_dir: inbox
+  records_dir: records
+  queue_dir: queue
+browser:
+  download_root: scientific-agent
+search:
+  sources:
+    - openalex
+    - arxiv
+  field_weights:
+    title: 5.0
+    abstract: 3.0
+    keywords: 4.0
+    authors: 1.8
+    venue: 4.5
+  bonuses:
+    topic_weight_multiplier: 5.0
+    venue_weight_multiplier: 6.0
+    venue_tier_weight_multiplier: 4.0
+    team_match_bonus: 2.0
+    pdf_available_bonus: 1.0
+  thresholds:
+    download_min_score: 8.0
+publishers:
+  ieee:
+    domains:
+      - ieeexplore.ieee.org
+  acm:
+    domains:
+      - dl.acm.org
+models:
+  planner:
+    provider: kimi
+    model: kimi-k2.5
+  runner:
+    provider: kimi
+    model: kimi-k2.5
+chat:
+  system_prompt: '你是我的科研智能体助手，服务于个人和课题组专有文献库建设。
+
+    你的核心目标是：
+
+    1. 帮我识别高价值文献，尤其关注顶刊顶会。
+
+    2. 帮我维护研究兴趣配置，包括关键词、方向权重、期刊会议权重。
+
+    3. 在没有充分证据时不要随意删除已有规则，优先建议增量更新。
+
+    4. 如果你要建议修改配置，请输出结构化 patch。
+
+    5. 研究兴趣当前重点包括：llm、人工智能、智慧农业、机器学习、多模态、遥感。
+
+    '
+classifier:
+  default_venue_tier: unranked
+  default_team: unassigned
+  default_keyword_bucket: general
+  path_template: '{venue_tier}/{primary_team}/{keyword_bucket}/{year}'
+  venue_tiers:
+  - name: top-journal
+    weight: 1.0
+    match:
+      venues:
+      - Nature
+      - Science
+      - Cell
+  - name: top-ai-conference
+    weight: 0.98
+    match:
+      venues:
+      - NeurIPS
+      - ICML
+      - ICLR
+      - CVPR
+      - ICCV
+      - ECCV
+      - ACL
+      - EMNLP
+      - NAACL
+      - KDD
+      - AAAI
+      - IJCAI
+  - name: top-remote-sensing
+    weight: 0.9
+    match:
+      venues:
+      - ISPRS Journal of Photogrammetry and Remote Sensing
+      - Remote Sensing of Environment
+      - IEEE Transactions on Geoscience and Remote Sensing
+  research_teams:
+  - name: advisor-group
+    weight: 0.8
+    match:
+      authors:
+      - Alice Zhang
+      - Bob Li
+      affiliations:
+      - Tsinghua University
+      - Peking University
+  keyword_buckets:
+  - name: llm
+    weight: 1.0
+    keywords:
+    - llm
+    - large language model
+    - instruction tuning
+    - reasoning model
+  - name: ai
+    weight: 0.95
+    keywords:
+    - artificial intelligence
+    - ai system
+    - foundation model
+  - name: machine-learning
+    weight: 0.9
+    keywords:
+    - machine learning
+    - deep learning
+    - representation learning
+  - name: multimodal
+    weight: 0.92
+    keywords:
+    - multimodal
+    - vision-language
+    - vision language model
+    - cross-modal
+  - name: remote-sensing
+    weight: 0.95
+    keywords:
+    - remote sensing
+    - satellite imagery
+    - earth observation
+    - hyperspectral
+  - name: smart-agriculture
+    weight: 0.95
+    keywords:
+    - smart agriculture
+    - precision agriculture
+    - crop monitoring
+    - agricultural intelligence
+research_profile:
+  priority_topics:
+  - name: llm
+    weight: 1.0
+    aliases:
+    - large language model
+    - language agent
+    - reasoning model
+  - name: artificial-intelligence
+    weight: 0.95
+    aliases:
+    - ai
+    - intelligent system
+  - name: machine-learning
+    weight: 0.9
+    aliases:
+    - ml
+    - deep learning
+  - name: multimodal
+    weight: 0.92
+    aliases:
+    - vision-language
+    - multimodal model
+  - name: remote-sensing
+    weight: 0.95
+    aliases:
+    - earth observation
+    - satellite image
+  - name: smart-agriculture
+    weight: 0.95
+    aliases:
+    - precision agriculture
+    - agricultural ai
+  venue_priorities:
+  - name: Nature
+    weight: 1.0
+  - name: Science
+    weight: 1.0
+  - name: Cell
+    weight: 1.0
+  - name: NeurIPS
+    weight: 0.99
+  - name: ICML
+    weight: 0.99
+  - name: ICLR
+    weight: 0.99
+  - name: CVPR
+    weight: 0.97
+  - name: ICCV
+    weight: 0.96
+  - name: ECCV
+    weight: 0.95
+  - name: ACL
+    weight: 0.96
+  - name: EMNLP
+    weight: 0.95
+  - name: KDD
+    weight: 0.95
+  - name: AAAI
+    weight: 0.93
+  - name: IJCAI
+    weight: 0.92
+  update_policy:
+    allow_new_topics: true
+    allow_weight_updates: true
+    require_user_confirmation: true
