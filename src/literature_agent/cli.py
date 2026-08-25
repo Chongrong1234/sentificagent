@@ -190,6 +190,36 @@ def _command_research(args: argparse.Namespace) -> int:
     return 0 if result.get("status") != "failed" else 1
 
 
+def _command_kb_sync(args: argparse.Namespace) -> int:
+    from .knowledge_sync import knowledge_base_settings, sync_lark, sync_obsidian
+
+    config = _config(args)
+    settings = knowledge_base_settings(config)
+    selected = {name for name, flag in (("obsidian", args.obsidian), ("lark", args.lark)) if flag}
+    targets = selected or {name for name in ("obsidian", "lark") if settings[name]["enabled"]}
+    if not targets:
+        targets = {"obsidian"}
+
+    result: dict[str, Any] = {}
+    if "obsidian" in targets:
+        result["obsidian"] = sync_obsidian(config, vault=args.vault or None)
+    if "lark" in targets:
+        result["lark"] = sync_lark(config, limit=args.limit)
+    _json_dump(result)
+    failed = any(
+        isinstance(section, dict) and section.get("status") in {"failed", "partial"}
+        for section in result.values()
+    )
+    return 1 if failed else 0
+
+
+def _command_kb_status(args: argparse.Namespace) -> int:
+    from .knowledge_sync import knowledge_base_status
+
+    _json_dump(knowledge_base_status(_config(args)))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     formatter = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser(
@@ -268,6 +298,21 @@ def build_parser() -> argparse.ArgumentParser:
     research.add_argument("--crawl", action="store_true")
     research.add_argument("--api-key", default="")
     research.set_defaults(handler=_command_research)
+
+    kb = subparsers.add_parser("kb", help="同步文献库到 Obsidian / 飞书知识库", formatter_class=formatter)
+    kb_sub = kb.add_subparsers(dest="kb_command", required=True)
+
+    kb_sync = kb_sub.add_parser("sync", help="同步文献到知识库（只保留 PDF 下载链接）", formatter_class=formatter)
+    _add_config_option(kb_sync)
+    kb_sync.add_argument("--obsidian", action="store_true", help="只同步到 Obsidian")
+    kb_sync.add_argument("--lark", action="store_true", help="只同步到飞书（需要 lark-cli）")
+    kb_sync.add_argument("--vault", default="", help="Obsidian 仓库路径（默认自动检测）")
+    kb_sync.add_argument("--limit", type=int, default=0, help="最多同步多少篇（0 为全部）")
+    kb_sync.set_defaults(handler=_command_kb_sync)
+
+    kb_status = kb_sub.add_parser("status", help="查看知识库同步配置与状态", formatter_class=formatter)
+    _add_config_option(kb_status)
+    kb_status.set_defaults(handler=_command_kb_status)
     return parser
 
 

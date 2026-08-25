@@ -5,6 +5,16 @@ storage:
   queue_dir: queue
   library_db: library.sqlite3
   reports_dir: reports
+knowledge_base:
+  obsidian:
+    enabled: true
+    vault: ''
+    subdir: Literature
+  lark:
+    enabled: false
+    cli: lark-cli
+    folder_token: ''
+    as: ''
 browser:
   download_root: scientific-agent
 search:
