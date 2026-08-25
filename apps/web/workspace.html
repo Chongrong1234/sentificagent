@@ -40,7 +40,23 @@
                   <option value="ds">DeepSeek</option>
                 </select>
               </div>
-              <p class="form-hint">API key 保存在后台 .secrets/，前端无需重复输入。</p>
+              <div class="form-group">
+                <label class="form-label" for="modelName">模型名称</label>
+                <input id="modelName" type="text" placeholder="kimi-k2.5" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="apiBase">API Base</label>
+                <input id="apiBase" type="text" placeholder="https://api.moonshot.cn/v1" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="apiKey">API Key</label>
+                <input id="apiKey" type="password" placeholder="sk-..." autocomplete="new-password">
+                <p class="form-hint" id="apiKeyStatus">正在读取密钥状态...</p>
+              </div>
+              <div class="btn-group mt-sm">
+                <button id="modelSettingsSave" class="btn btn-primary">保存模型设置</button>
+              </div>
+              <p class="form-hint">Key 保存在本地 .secrets/，重启后仍然生效。</p>
             </div>
 
             <div class="card mt-sm">
@@ -83,7 +99,6 @@
           <div id="controls-attention" class="studio-section is-hidden">
             <div class="card">
               <p class="eyebrow">Attention Feed</p>
-              <p class="text-sm text-muted">订阅源、关键词、阈值、摘要数量来自配置文件。</p>
               <label class="check-row mt-sm" for="attentionUseAi" style="display:flex;align-items:center;gap:8px">
                 <input id="attentionUseAi" type="checkbox" checked>
                 <span class="text-sm">启用异步 AI 总结</span>
@@ -124,7 +139,6 @@
 
             <div class="card mt-sm">
               <p class="eyebrow">RAG Writing</p>
-              <p class="text-sm text-muted">写作功能已拆成独立工作台，支持导入 LaTeX 项目、基于证据生成初稿、编译预览。</p>
               <a href="/writing" class="btn btn-secondary mt-sm" style="display:inline-flex;text-decoration:none">打开写作工作台</a>
             </div>
           </div>
@@ -137,7 +151,7 @@
             <div class="stat-card">
               <span>状态</span>
               <strong id="missionStatus">等待任务</strong>
-              <p id="missionDetail" class="text-xs text-muted mt-sm">输入研究目标后，系统会生成配置补丁和检索计划。</p>
+              <p id="missionDetail" class="text-xs text-muted mt-sm">等待输入研究目标。</p>
             </div>
             <div class="stat-card">
               <span>下载队列</span>

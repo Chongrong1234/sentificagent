@@ -79,6 +79,8 @@ function switchWorkspaceTab(tabName) {
 
 /* ── API ── */
 
+let modelSettingsState = {};
+
 async function getJson(path) {
   const response = await fetch(path);
   const data = await response.json();
@@ -86,23 +88,55 @@ async function getJson(path) {
   return data;
 }
 
+function renderModelSettings(data) {
+  modelSettingsState = data || {};
+  const provider = modelSettingsState.provider || "kimi";
+  if (byId("modelProvider")) byId("modelProvider").value = provider;
+  if (byId("modelName") && modelSettingsState.model) byId("modelName").value = modelSettingsState.model;
+  if (byId("apiBase")) byId("apiBase").value = modelSettingsState.api_base || "";
+  renderProviderKeyStatus(provider);
+}
+
+function renderProviderKeyStatus(provider) {
+  const isDs = provider === "ds";
+  const masked = isDs ? modelSettingsState.ds_key_masked : modelSettingsState.kimi_key_masked;
+  const hasKey = isDs ? modelSettingsState.has_ds_key : modelSettingsState.has_kimi_key;
+  const base = isDs ? modelSettingsState.ds_api_base : modelSettingsState.kimi_api_base;
+  if (byId("apiBase") && base) byId("apiBase").placeholder = base;
+  const statusNode = byId("apiKeyStatus");
+  if (statusNode) {
+    statusNode.textContent = hasKey
+      ? `已保存密钥（${masked || "***"}），输入新值可覆盖`
+      : "尚未设置密钥，请粘贴后保存";
+  }
+}
+
 async function syncModelSettings() {
   const data = await getJson("/api/model-settings");
-  if (byId("modelProvider")) byId("modelProvider").value = data.provider || "kimi";
+  renderModelSettings(data);
   return data;
 }
 
-async function saveModelSettings() {
+async function saveModelSettings(options = {}) {
   const provider = byId("modelProvider")?.value || "kimi";
+  const payload = { model_provider: provider };
+  if (!options.providerOnly) {
+    payload.model = byId("modelName")?.value.trim() || "";
+    payload.api_base = byId("apiBase")?.value.trim() || "";
+    const apiKey = byId("apiKey")?.value.trim() || "";
+    if (apiKey) payload.api_key = apiKey;
+  }
   const response = await fetch("/api/model-settings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model_provider: provider }),
+    body: JSON.stringify(payload),
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.detail || data.error || "model settings update failed");
-  setMission("模型已切换", `当前全局模型：${data.label}`);
-  showToast("success", "模型已切换", data.label);
+  renderModelSettings(data);
+  if (payload.api_key && byId("apiKey")) byId("apiKey").value = "";
+  setMission("模型设置已保存", `当前全局模型：${data.label} / ${data.model || ""}`);
+  showToast("success", "模型设置已保存", `${data.label} · ${data.model || "默认模型"}`);
   return data;
 }
 
@@ -695,8 +729,15 @@ function bindEvents() {
   byId("searchButton").addEventListener("click", () => runSearch(false));
   byId("searchDownloadButton").addEventListener("click", () => runSearch(true));
   byId("modelProvider").addEventListener("change", () => {
-    saveModelSettings().catch((error) => {
+    renderProviderKeyStatus(byId("modelProvider").value);
+    saveModelSettings({ providerOnly: true }).catch((error) => {
       setMission("模型切换失败", error.message || String(error), "error");
+    });
+  });
+  byId("modelSettingsSave").addEventListener("click", () => {
+    saveModelSettings().catch((error) => {
+      setMission("模型设置保存失败", error.message || String(error), "error");
+      showToast("error", "保存失败", error.message || String(error));
     });
   });
 

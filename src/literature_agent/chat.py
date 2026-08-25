@@ -16,6 +16,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_KIMI_KEY_FILE = PROJECT_ROOT / ".secrets" / "kimi_api_key.txt"
 DEFAULT_DEEPSEEK_KEY_FILE = PROJECT_ROOT / ".secrets" / "deepseek_api_key.txt"
 DEFAULT_MODEL_PROVIDER_FILE = PROJECT_ROOT / ".secrets" / "model_provider.txt"
+DEFAULT_KIMI_API_BASE_FILE = PROJECT_ROOT / ".secrets" / "kimi_api_base.txt"
+DEFAULT_DEEPSEEK_API_BASE_FILE = PROJECT_ROOT / ".secrets" / "deepseek_api_base.txt"
 
 
 @dataclass(frozen=True)
@@ -57,7 +59,47 @@ def provider_label(provider: str | None) -> str:
 
 
 def provider_api_base(provider: str | None) -> str:
-    return DEEPSEEK_API_BASE if normalize_model_provider(provider) == "ds" else KIMI_API_BASE
+    normalized = normalize_model_provider(provider)
+    override_path = DEFAULT_DEEPSEEK_API_BASE_FILE if normalized == "ds" else DEFAULT_KIMI_API_BASE_FILE
+    if override_path.exists():
+        override = override_path.read_text(encoding="utf-8").strip()
+        if override:
+            return override
+    return DEEPSEEK_API_BASE if normalized == "ds" else KIMI_API_BASE
+
+
+def save_provider_api_base(provider: str | None, api_base: str) -> str:
+    """Persist a custom API base for the provider; empty value restores the default."""
+    normalized = normalize_model_provider(provider)
+    target = DEFAULT_DEEPSEEK_API_BASE_FILE if normalized == "ds" else DEFAULT_KIMI_API_BASE_FILE
+    cleaned = str(api_base or "").strip().rstrip("/")
+    if not cleaned:
+        target.unlink(missing_ok=True)
+        return ""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(cleaned, encoding="utf-8")
+    return cleaned
+
+
+def save_provider_api_key(provider: str | None, api_key: str) -> bool:
+    """Persist an API key under .secrets/; empty input leaves the stored key untouched."""
+    secret = str(api_key or "").strip()
+    if not secret:
+        return False
+    normalized = normalize_model_provider(provider)
+    target = DEFAULT_DEEPSEEK_KEY_FILE if normalized == "ds" else DEFAULT_KIMI_KEY_FILE
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(secret, encoding="utf-8")
+    return True
+
+
+def mask_api_key(api_key: str | None) -> str:
+    secret = str(api_key or "").strip()
+    if not secret:
+        return ""
+    if len(secret) <= 8:
+        return "***"
+    return f"{secret[:4]}...{secret[-4:]}"
 
 
 def load_provider_api_key(provider: str | None, explicit: str = "") -> str:

@@ -20,10 +20,13 @@ from .chat import (
     chat_with_kimi,
     load_default_model_provider,
     load_provider_api_key,
+    mask_api_key,
     normalize_model_provider,
     provider_api_base,
     provider_label,
     save_default_model_provider,
+    save_provider_api_base,
+    save_provider_api_key,
 )
 from .config import AppConfig, load_config
 from .config_updates import apply_config_update, preview_config_update
@@ -782,15 +785,8 @@ class CaptureHandler(BaseHTTPRequestHandler):
             self._send_json({"jobs": list_attention_jobs()})
             return
         if request_path == "/api/model-settings":
-            provider = load_default_model_provider()
-            self._send_json(
-                {
-                    "provider": provider,
-                    "label": provider_label(provider),
-                    "has_kimi_key": bool(load_provider_api_key("kimi")),
-                    "has_ds_key": bool(load_provider_api_key("ds")),
-                }
-            )
+            config = load_config()
+            self._send_json(self._model_settings_payload(config))
             return
         if request_path.startswith("/api/library/search"):
             params = self._query_params()
@@ -1038,7 +1034,7 @@ class CaptureHandler(BaseHTTPRequestHandler):
                 self._send_json(result, status=HTTPStatus.OK)
                 return
             if self.path == "/api/model-settings":
-                result = self._handle_model_settings(payload)
+                result = self._handle_model_settings(config, payload)
                 self._send_json(result, status=HTTPStatus.OK)
                 return
             if self.path == "/api/search":
@@ -1491,15 +1487,44 @@ class CaptureHandler(BaseHTTPRequestHandler):
             "model_provider": model_provider,
         }
 
-    def _handle_model_settings(self, payload: dict[str, Any]) -> dict[str, Any]:
-        provider = save_default_model_provider(str(payload.get("model_provider") or "kimi"))
+    def _model_settings_payload(self, config: AppConfig, provider: str | None = None) -> dict[str, Any]:
+        resolved = normalize_model_provider(provider or load_default_model_provider())
+        kimi_key = load_provider_api_key("kimi")
+        ds_key = load_provider_api_key("ds")
+        active_key = ds_key if resolved == "ds" else kimi_key
         return {
-            "status": "ok",
-            "provider": provider,
-            "label": provider_label(provider),
-            "has_kimi_key": bool(load_provider_api_key("kimi")),
-            "has_ds_key": bool(load_provider_api_key("ds")),
+            "provider": resolved,
+            "label": provider_label(resolved),
+            "model": self._resolve_model_name(config, resolved, "runner"),
+            "api_base": provider_api_base(resolved),
+            "has_key": bool(active_key),
+            "key_masked": mask_api_key(active_key),
+            "has_kimi_key": bool(kimi_key),
+            "kimi_key_masked": mask_api_key(kimi_key),
+            "kimi_api_base": provider_api_base("kimi"),
+            "has_ds_key": bool(ds_key),
+            "ds_key_masked": mask_api_key(ds_key),
+            "ds_api_base": provider_api_base("ds"),
         }
+
+    def _handle_model_settings(self, config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
+        provider = save_default_model_provider(str(payload.get("model_provider") or "kimi"))
+        api_key = str(payload.get("api_key") or "").strip()
+        if api_key:
+            save_provider_api_key(provider, api_key)
+        if "api_base" in payload:
+            save_provider_api_base(provider, str(payload.get("api_base") or ""))
+        model = str(payload.get("model") or "").strip()
+        if model:
+            apply_config_update(
+                config,
+                {"models": {
+                    "planner": {"provider": provider, "model": model},
+                    "runner": {"provider": provider, "model": model},
+                }},
+            )
+        updated_config = load_config()
+        return {"status": "ok", **self._model_settings_payload(updated_config, provider)}
 
     def _handle_apply_patch(self, config: Any, payload: dict[str, Any]) -> dict[str, Any]:
         patch = payload.get("patch", {})
