@@ -11,8 +11,11 @@ from .config import AppConfig
 
 
 KIMI_API_BASE = "https://api.moonshot.cn/v1"
+DEEPSEEK_API_BASE = "https://api.deepseek.com/v1"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_KIMI_KEY_FILE = PROJECT_ROOT / ".secrets" / "kimi_api_key.txt"
+DEFAULT_DEEPSEEK_KEY_FILE = PROJECT_ROOT / ".secrets" / "deepseek_api_key.txt"
+DEFAULT_MODEL_PROVIDER_FILE = PROJECT_ROOT / ".secrets" / "model_provider.txt"
 
 
 @dataclass(frozen=True)
@@ -27,6 +30,50 @@ def _load_project_api_key() -> str:
     if not DEFAULT_KIMI_KEY_FILE.exists():
         return ""
     return DEFAULT_KIMI_KEY_FILE.read_text(encoding="utf-8").strip()
+
+
+def normalize_model_provider(value: str | None) -> str:
+    normalized = str(value or "kimi").strip().lower()
+    if normalized in {"ds", "deepseek"}:
+        return "ds"
+    return "kimi"
+
+
+def load_default_model_provider() -> str:
+    if DEFAULT_MODEL_PROVIDER_FILE.exists():
+        return normalize_model_provider(DEFAULT_MODEL_PROVIDER_FILE.read_text(encoding="utf-8").strip())
+    return "kimi"
+
+
+def save_default_model_provider(provider: str) -> str:
+    normalized = normalize_model_provider(provider)
+    DEFAULT_MODEL_PROVIDER_FILE.parent.mkdir(parents=True, exist_ok=True)
+    DEFAULT_MODEL_PROVIDER_FILE.write_text(normalized, encoding="utf-8")
+    return normalized
+
+
+def provider_label(provider: str | None) -> str:
+    return "DeepSeek" if normalize_model_provider(provider) == "ds" else "Kimi"
+
+
+def provider_api_base(provider: str | None) -> str:
+    return DEEPSEEK_API_BASE if normalize_model_provider(provider) == "ds" else KIMI_API_BASE
+
+
+def load_provider_api_key(provider: str | None, explicit: str = "") -> str:
+    secret = str(explicit or "").strip()
+    if secret:
+        return secret
+    normalized = normalize_model_provider(provider)
+    env_names = ("DEEPSEEK_API_KEY", "OPENAI_API_KEY") if normalized == "ds" else ("KIMI_API_KEY", "OPENAI_API_KEY")
+    for env_name in env_names:
+        value = str(os.environ.get(env_name) or "").strip()
+        if value:
+            return value
+    key_path = DEFAULT_DEEPSEEK_KEY_FILE if normalized == "ds" else DEFAULT_KIMI_KEY_FILE
+    if key_path.exists():
+        return key_path.read_text(encoding="utf-8").strip()
+    return ""
 
 
 def _build_messages(config: AppConfig, user_message: str) -> list[dict[str, str]]:
@@ -99,18 +146,20 @@ def chat_with_kimi(
     user_message: str,
     api_key: str | None = None,
     model: str | None = None,
+    provider: str | None = None,
 ) -> ChatResult:
-    secret = api_key or os.environ.get("KIMI_API_KEY", "") or _load_project_api_key()
+    resolved_provider = normalize_model_provider(provider or load_default_model_provider())
+    secret = load_provider_api_key(resolved_provider, api_key or "")
     if not secret:
-        raise ValueError("Missing Kimi API key.")
+        raise ValueError(f"Missing {provider_label(resolved_provider)} API key.")
 
     payload = {
-        "model": model or config.planner_model,
+        "model": model or ("deepseek-chat" if resolved_provider == "ds" else config.planner_model),
         "messages": _build_messages(config, user_message),
     }
 
     req = request.Request(
-        f"{KIMI_API_BASE}/chat/completions",
+        f"{provider_api_base(resolved_provider)}/chat/completions",
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
@@ -124,9 +173,9 @@ def chat_with_kimi(
             body = json.loads(response.read().decode("utf-8"))
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"Kimi API error: {exc.code} {detail}") from exc
+        raise RuntimeError(f"{provider_label(resolved_provider)} API error: {exc.code} {detail}") from exc
     except error.URLError as exc:
-        raise RuntimeError(f"Kimi network error: {exc}") from exc
+        raise RuntimeError(f"{provider_label(resolved_provider)} network error: {exc}") from exc
 
     content = (
         body.get("choices", [{}])[0]

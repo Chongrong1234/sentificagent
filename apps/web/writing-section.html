@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Writing Section Window</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell shell-wide">
+      <section class="writing-studio">
+        <section class="panel studio-topbar">
+          <div class="studio-heading">
+            <p class="eyebrow">Section Window</p>
+            <h1 id="sectionWindowTitle">章节独立生成窗口</h1>
+            <p id="sectionWindowMeta" class="studio-subtitle">面向当前章节，保留最近上下文记忆和关键信息，单独生成或改写。</p>
+          </div>
+          <div class="studio-toolbar">
+            <button id="reloadSectionButton" class="ghost">刷新上下文</button>
+            <button id="saveSectionButton" class="ghost">保存当前源码</button>
+          </div>
+        </section>
+
+        <section class="panel studio-grid">
+          <aside class="studio-sidebar overleaf-sidebar">
+            <section class="sidebar-section sidebar-section-compact">
+              <div class="panel-title">
+                <div>
+                  <p class="eyebrow">Controls</p>
+                  <h2>章节控制</h2>
+                </div>
+              </div>
+              <label class="chat-field">
+                <span>生成模式</span>
+                <select id="sectionMode">
+                  <option value="section">完整章节</option>
+                  <option value="continue">续写</option>
+                  <option value="revise">重写</option>
+                </select>
+              </label>
+              <label class="chat-field">
+                <span>章节任务</span>
+                <textarea id="sectionPrompt" placeholder="例如：严格按课程要求补齐本节分析；或者：把本节改成更学术、更连贯的综述风格。"></textarea>
+              </label>
+              <div class="chat-actions">
+                <button id="generateSectionButton">生成章节</button>
+              </div>
+            </section>
+
+            <section class="sidebar-section sidebar-section-fill">
+              <div class="panel-title">
+                <div>
+                  <p class="eyebrow">Memory</p>
+                  <h2>上下文记忆</h2>
+                </div>
+              </div>
+              <div id="sectionMemoryCards" class="preview-stack">
+                <article class="preview-card">
+                  <p class="empty">正在加载章节上下文...</p>
+                </article>
+              </div>
+            </section>
+          </aside>
+
+          <section class="studio-editor-panel overleaf-pane">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Source</p>
+                <h2 id="sectionFilePath">sections/...</h2>
+                <p class="studio-subtitle">编辑器中的内容会直接保存回当前项目文件。</p>
+              </div>
+            </div>
+            <div class="latex-editor-container">
+              <pre class="overleaf-highlight-layer" aria-hidden="true"><code id="sectionHighlightCode"></code></pre>
+              <textarea id="sectionEditor" class="latex-editor" spellcheck="false"></textarea>
+            </div>
+          </section>
+
+          <section class="studio-preview-panel overleaf-pane">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">Assistant</p>
+                <h2>章节输出</h2>
+                <p class="studio-subtitle">生成结果和检索到的证据会显示在这里。</p>
+              </div>
+            </div>
+            <div class="preview-stack">
+              <article class="preview-card">
+                <strong>助手回应</strong>
+                <pre id="sectionReply">等待生成...</pre>
+              </article>
+              <article class="preview-card">
+                <strong>证据</strong>
+                <div id="sectionEvidence">
+                  <p class="empty">等待生成...</p>
+                </div>
+              </article>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+    <script src="/writing-section.js"></script>
+  </body>
+</html>

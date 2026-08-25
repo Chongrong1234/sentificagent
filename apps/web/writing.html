@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scientific Agent — Writing Studio</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main class="writing-studio-shell">
+      <header class="writing-studio-topbar">
+        <div class="writing-studio-topbar-left">
+          <a class="overleaf-brand" href="/">Scientific Agent</a>
+          <span class="topbar-sep">/</span>
+          <select id="projectSelect" class="overleaf-project-select">
+            <option value="">选择项目…</option>
+          </select>
+          <button id="refreshProjectsButton" class="btn btn-ghost btn-sm" title="刷新项目列表">&#8635;</button>
+          <button id="newProjectButton" class="btn btn-primary btn-sm">+ 新建项目</button>
+        </div>
+        <div class="writing-studio-topbar-center">
+          <div class="writing-studio-project-meta">
+            <strong id="studioProjectTitle">Writing Studio</strong>
+            <span id="studioProjectMeta">先创建或选择一个项目。</span>
+          </div>
+        </div>
+        <div class="writing-studio-topbar-right">
+          <button id="compileProjectButton" class="btn btn-secondary btn-sm">编译</button>
+          <button id="openSettingsButton" class="btn btn-ghost btn-sm" title="项目设置">&#9881;</button>
+        </div>
+      </header>
+
+      <section class="writing-studio-layout">
+        <aside class="writing-studio-sidebar">
+          <div class="writing-studio-sidebar-header">
+            <div class="writing-sidebar-header-row">
+              <p class="eyebrow">Workflow</p>
+              <button id="analyzeChaptersButton" class="btn btn-ghost btn-sm" title="用 AI 重新分析章节结构">&#128269; 分析章节</button>
+            </div>
+            <span id="workflowStageBadge" class="badge badge-ghost">阶段：--</span>
+          </div>
+
+          <article id="stage1Card" class="writing-stage-card is-empty">
+            <div class="writing-stage-card-head">
+              <span class="writing-stage-icon">🔍</span>
+              <div>
+                <strong>STAGE 1 勘探与选题</strong>
+                <p>选择项目后开始勘探。</p>
+              </div>
+            </div>
+          </article>
+
+          <div id="sectionCardList" class="writing-section-card-list">
+            <article class="writing-section-card is-empty">
+              <strong>等待项目加载</strong>
+              <p>读取章节结构后在这里显示逐章卡片。</p>
+            </article>
+          </div>
+        </aside>
+
+        <section class="writing-studio-main">
+          <div class="writing-studio-main-header">
+            <div>
+              <p class="eyebrow">Current Section</p>
+              <h1 id="currentSectionTitle">选择或创建项目</h1>
+              <p id="currentSectionMeta" class="writing-section-meta">点击「+ 新建项目」创建写作项目，上传模板后可自动分析章节结构。</p>
+            </div>
+            <div class="btn-group">
+              <button id="saveSectionDraftButton" class="btn btn-ghost btn-sm">保存草稿</button>
+              <button id="lockSectionButton" class="btn btn-secondary btn-sm">锁定本章</button>
+              <button id="finalReviewButton" class="btn btn-primary btn-sm">终审</button>
+            </div>
+          </div>
+
+          <div class="writing-studio-mode-tabs">
+            <button id="modeExploreButton" class="writing-mode-tab is-active" data-mode="explore">勘探</button>
+            <button id="modeNegotiateButton" class="writing-mode-tab" data-mode="negotiate">协商</button>
+            <button id="modeWriteButton" class="writing-mode-tab" data-mode="write">写作</button>
+          </div>
+
+          <section id="explorePanel" class="writing-mode-panel">
+            <div class="writing-grid writing-grid-explore">
+              <article class="writing-panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Stage 1</p>
+                    <h2>文献勘探与选题</h2>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="explorationTopicInput">主题词</label>
+                  <input id="explorationTopicInput" type="text" placeholder="例如：路面病害检测 深度学习">
+                </div>
+                <div class="btn-group mt-sm">
+                  <button id="explorationSubmitButton" class="btn btn-primary btn-sm">生成勘探报告</button>
+                </div>
+                <div id="explorationCoverage" class="writing-chip-list mt-sm">
+                  <span class="badge">等待生成覆盖方向</span>
+                </div>
+                <div id="explorationInsights" class="insight-list mt-sm">
+                  <article class="insight-item insight-item-info">
+                    <strong>操作提示</strong>
+                    <p>先生成勘探报告，再从建议里确认选题方向。</p>
+                  </article>
+                </div>
+              </article>
+
+              <article class="writing-panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Options</p>
+                    <h2>选题建议</h2>
+                  </div>
+                </div>
+                <div id="explorationSuggestionList" class="writing-choice-list">
+                  <article class="writing-choice-card is-empty">
+                    <strong>还没有选题建议</strong>
+                    <p>生成勘探报告后，这里会显示 2-3 个选题方向。</p>
+                  </article>
+                </div>
+                <div class="form-group mt-sm">
+                  <label class="form-label" for="explorationCustomTopicInput">自定义选题</label>
+                  <textarea id="explorationCustomTopicInput" rows="3" placeholder="如果你已有明确方向，可直接输入你想写的选题。"></textarea>
+                </div>
+                <div class="btn-group mt-sm">
+                  <button id="confirmTopicButton" class="btn btn-secondary btn-sm">确认当前选题</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section id="negotiatePanel" class="writing-mode-panel is-hidden">
+            <div class="writing-grid writing-grid-negotiate">
+              <article class="writing-panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Negotiation</p>
+                    <h2 id="negotiationSectionTitle">章节协商</h2>
+                    <p id="negotiationGuideText" class="writing-text-muted">等待选择章节。</p>
+                  </div>
+                </div>
+                <div id="negotiationRequiredList" class="writing-requirement-list"></div>
+                <div id="negotiationChoiceList" class="writing-choice-list mt-sm">
+                  <article class="writing-choice-card is-empty">
+                    <strong>等待章节加载</strong>
+                    <p>选择章节后显示协商策略选项。</p>
+                  </article>
+                </div>
+                <div class="form-group mt-sm">
+                  <label class="form-label" for="negotiationCustomNote">补充要求</label>
+                  <textarea id="negotiationCustomNote" rows="3" placeholder="例如：强调工程部署约束；这一章按时间演进来组织。"></textarea>
+                </div>
+                <div class="btn-group mt-sm">
+                  <button id="confirmNegotiationButton" class="btn btn-primary btn-sm">确认本章策略</button>
+                  <button id="startOrderingButton" class="btn btn-ghost btn-sm">进入顺序选择</button>
+                </div>
+              </article>
+
+              <article class="writing-panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Order</p>
+                    <h2>写作顺序</h2>
+                    <p class="writing-text-muted">可以直接用推荐顺序，也可以手动调整章节先后。</p>
+                  </div>
+                </div>
+                <div id="writingOrderList" class="writing-order-list">
+                  <article class="writing-order-item is-empty">
+                    <strong>等待协商完成</strong>
+                    <p>逐章协商完成后，这里会给出推荐写作顺序。</p>
+                  </article>
+                </div>
+                <div class="btn-group mt-sm">
+                  <button id="acceptRecommendedOrderButton" class="btn btn-secondary btn-sm">接受推荐顺序</button>
+                  <button id="applyManualOrderButton" class="btn btn-primary btn-sm">应用当前顺序</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section id="writePanel" class="writing-mode-panel is-hidden">
+            <div class="writing-grid writing-grid-write">
+              <article class="writing-panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Source</p>
+                    <h2 id="editorSectionTitle">章节源码</h2>
+                    <p id="editorSectionPath" class="writing-text-muted">选择章节后在这里编辑源码。</p>
+                  </div>
+                </div>
+                <div class="latex-editor-container" id="sectionEditorContainer">
+                  <pre class="overleaf-highlight-layer" aria-hidden="true"><code id="sectionHighlightCode"></code></pre>
+                  <textarea id="sectionEditor" class="latex-editor writing-studio-editor" spellcheck="false" placeholder="章节内容会显示在这里。"></textarea>
+                </div>
+                <div class="btn-group mt-sm">
+                  <button id="generateSectionButton" class="btn btn-primary btn-sm">请求 AI 续写</button>
+                  <button id="insertWorkspaceFigureButton" class="btn btn-secondary btn-sm">插入工作区图片</button>
+                  <button id="openSectionWindowButton" class="btn btn-ghost btn-sm">章节窗口</button>
+                </div>
+                <div id="sectionAuditList" class="insight-list mt-sm">
+                  <article class="insight-item insight-item-info">
+                    <strong>写作提示</strong>
+                    <p>可以先手动编辑，再用 AI 续写或重写当前章节。</p>
+                  </article>
+                </div>
+              </article>
+
+              <article class="writing-panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Assistant</p>
+                    <h2>章节操作</h2>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="sectionMode">生成模式</label>
+                  <select id="sectionMode">
+                    <option value="continue">续写</option>
+                    <option value="section">完整章节</option>
+                    <option value="revise">重写</option>
+                  </select>
+                </div>
+                <div class="form-group mt-sm">
+                  <label class="form-label" for="sectionPrompt">章节任务</label>
+                  <textarea id="sectionPrompt" rows="5" placeholder="例如：按已确认策略，把本章扩写成完整综述；每段保持论证递进。"></textarea>
+                </div>
+                <article class="writing-figure-hint mt-sm">
+                  <strong>图表提示</strong>
+                  <p id="figureHintText">当前章节暂无图表特殊要求。</p>
+                </article>
+                <article class="writing-assistant-reply mt-sm">
+                  <strong>助手回应</strong>
+                  <pre id="sectionReply">等待生成...</pre>
+                </article>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <aside class="writing-studio-sidepanel">
+          <article class="writing-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Evidence</p>
+                <h2>文献证据</h2>
+              </div>
+            </div>
+            <div id="evidenceList" class="writing-evidence-list">
+              <article class="writing-evidence-card is-empty">
+                <strong>还没有证据卡</strong>
+                <p>章节上下文加载后显示相关文献与证据摘要。</p>
+              </article>
+            </div>
+          </article>
+
+          <article class="writing-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Citation Gate</p>
+                <h2>待审核引用</h2>
+              </div>
+            </div>
+            <div id="citationReviewList" class="writing-evidence-list">
+              <article class="writing-evidence-card is-empty">
+                <strong>当前没有待审核引用</strong>
+                <p>当章节中出现 `[待引用:N]` 占位符时，这里会显示候选文献与审批操作。</p>
+              </article>
+            </div>
+            <div class="btn-group mt-sm">
+              <button id="applyCitationSelectionsButton" class="btn btn-secondary btn-sm">应用已选引用</button>
+            </div>
+          </article>
+
+          <article class="writing-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Guardrails</p>
+                <h2>护栏状态</h2>
+              </div>
+            </div>
+            <div id="guardrailChecklist" class="writing-checklist">
+              <div class="writing-check-item"><span class="status-dot"></span><strong>等待项目加载</strong></div>
+            </div>
+            <article class="writing-assistant-reply mt-sm">
+              <strong>当前章节护栏 Prompt</strong>
+              <pre id="guardrailPromptText">等待项目加载...</pre>
+            </article>
+            <div id="guardrailViolationList" class="insight-list mt-sm">
+              <article class="insight-item insight-item-info">
+                <strong>暂无护栏警告</strong>
+                <p>保存或生成后若有违规裁剪，会在这里列出。</p>
+              </article>
+            </div>
+          </article>
+
+          <article class="writing-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Preview</p>
+                <h2>编译与预览</h2>
+              </div>
+            </div>
+            <iframe id="pdfPreview" class="overleaf-pdf-frame writing-inline-preview" title="PDF preview"></iframe>
+            <div id="previewFallback" class="preview-placeholder is-hidden">
+              <p class="empty-state">还没有可预览的 PDF。</p>
+            </div>
+          </article>
+        </aside>
+      </section>
+
+      <!-- ═══ Overleaf-style Source & PDF Panel ═══ -->
+      <section class="overleaf-panel" id="overleafPanel">
+        <header class="overleaf-panel-header">
+          <div class="overleaf-panel-header-left">
+            <span class="overleaf-panel-label">Source &amp; PDF</span>
+          </div>
+          <div class="overleaf-panel-header-right">
+            <button id="overleafCompileButton" class="btn btn-primary btn-sm">编译</button>
+            <button id="overleafDownloadPdfButton" class="btn btn-ghost btn-sm">打开 PDF</button>
+            <button id="overleafToggleButton" class="btn btn-ghost btn-sm" title="折叠面板">收起</button>
+          </div>
+        </header>
+        <div class="overleaf-panel-body" id="overleafPanelBody">
+          <div class="overleaf-panel-split" id="overleafSplit">
+            <aside class="overleaf-panel-filelist" id="overleafFileList">
+              <div class="overleaf-filelist-header">项目文件</div>
+              <div class="overleaf-filelist-items" id="overleafFileItems">
+                <p class="empty-state">选择项目后加载文件列表。</p>
+              </div>
+            </aside>
+            <div class="overleaf-panel-resizer" id="overleafResizerLeft"></div>
+            <div class="overleaf-panel-editor" id="overleafEditorContainer">
+              <pre id="overleafHighlight" class="overleaf-highlight-layer" aria-hidden="true"><code id="overleafHighlightCode"></code></pre>
+              <textarea id="overleafEditor" class="overleaf-editor-area" spellcheck="false" placeholder="从左侧文件列表选择文件进行编辑..."></textarea>
+            </div>
+            <div class="overleaf-panel-resizer" id="overleafResizer"></div>
+            <div class="overleaf-panel-preview">
+              <iframe id="overleafPdfFrame" class="overleaf-pdf-frame" title="PDF Preview"></iframe>
+              <div id="overleafPreviewFallback" class="preview-placeholder">
+                <p class="empty-state">编译后在此处显示 PDF 预览。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="status-bar writing-studio-statusbar">
+        <div class="status-bar-left">
+          <span id="statusBarText" class="status-item"><strong>未加载项目</strong></span>
+        </div>
+        <div class="status-bar-right">
+          <span id="statusLockedCount" class="status-item">已锁定 0</span>
+          <span id="statusReviewCount" class="status-item">待复核 0</span>
+          <span id="statusCitationCount" class="status-item">待审核引用 0</span>
+        </div>
+      </footer>
+    </main>
+
+    <!-- ═══ New Project Modal ═══ -->
+    <div id="newProjectOverlay" class="modal-overlay is-hidden"></div>
+    <div id="newProjectModal" class="modal-dialog is-hidden">
+      <div class="modal-header">
+        <h2>新建写作项目</h2>
+        <button id="closeNewProjectModalButton" class="btn btn-ghost btn-sm">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="modalProjectTitle">项目标题 *</label>
+          <input id="modalProjectTitle" type="text" placeholder="例如：路面病害检测综述">
+        </div>
+        <div class="form-row mt-sm">
+          <div class="form-group">
+            <label class="form-label" for="modalWritingType">写作类型</label>
+            <select id="modalWritingType">
+              <option value="academic">英文论文</option>
+              <option value="grant">中文基金/毕业论文</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modalTemplate">模板（可选）</label>
+            <select id="modalTemplate"></select>
+          </div>
+        </div>
+        <div class="form-group mt-sm">
+          <label class="form-label" for="modalTopic">研究主题（可选）</label>
+          <input id="modalTopic" type="text" placeholder="例如：路面病害检测 深度学习">
+        </div>
+        <div class="form-group mt-sm">
+          <label class="form-label">导入项目文件（可选，.tex / .zip）</label>
+          <label class="upload-zone" id="modalUploadZone">
+            <strong>点击或拖拽上传</strong>
+            <p>支持 .tex、.cls、.sty、.bib、图片、.zip</p>
+            <input id="modalFileInput" type="file" multiple class="is-hidden">
+          </label>
+          <p id="modalUploadHint" class="writing-text-muted mt-sm">上传 LaTeX 模板或项目压缩包后，系统会自动用 AI 分析章节结构。</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelNewProjectButton" class="btn btn-ghost">取消</button>
+        <button id="confirmNewProjectButton" class="btn btn-primary">创建项目</button>
+      </div>
+    </div>
+
+    <div id="settingsOverlay" class="overleaf-overlay is-hidden"></div>
+    <aside id="settingsDrawer" class="overleaf-drawer is-hidden">
+      <div class="drawer-header">
+        <h2>项目设置</h2>
+        <button id="closeDrawerButton" class="btn btn-ghost btn-sm">&times; 关闭</button>
+      </div>
+      <div class="drawer-body">
+        <section class="drawer-section">
+          <p class="eyebrow">Project Setup</p>
+          <div class="form-group">
+            <label class="form-label" for="chatTitle">项目标题</label>
+            <input id="chatTitle" type="text" placeholder="例如：脑机接口综述 / 开题报告">
+          </div>
+          <div class="form-row mt-sm">
+            <div class="form-group">
+              <label class="form-label" for="writingType">写作类型</label>
+              <select id="writingType">
+                <option value="academic">英文论文</option>
+                <option value="grant">中文基金/毕业论文</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="newProjectTemplate">模板</label>
+              <select id="newProjectTemplate"></select>
+            </div>
+          </div>
+          <div class="btn-group mt-sm">
+            <button id="saveProjectMetaButton" class="btn btn-secondary btn-sm">保存项目信息</button>
+            <button id="deleteProjectButton" class="btn btn-danger btn-sm">删除项目</button>
+          </div>
+        </section>
+
+        <hr class="drawer-divider">
+
+        <section class="drawer-section">
+          <p class="eyebrow">Import LaTeX Project</p>
+          <div class="form-group">
+            <label class="form-label" for="projectImportInput">上传项目文件（.tex / .cls / .sty / .bib / 图片 / .zip）</label>
+            <input id="projectImportInput" type="file" multiple>
+          </div>
+          <div class="btn-group mt-sm">
+            <button id="importProjectButton" class="btn btn-secondary btn-sm">导入项目源码</button>
+            <button id="replaceProjectButton" class="btn btn-ghost btn-sm">覆盖导入</button>
+          </div>
+        </section>
+
+        <hr class="drawer-divider">
+
+        <section class="drawer-section">
+          <p class="eyebrow">Reference Materials</p>
+          <label class="upload-zone" id="uploadZone">
+            <strong>点击或拖拽上传材料</strong>
+            <p>支持 PDF、DOCX、TXT、MD、TeX、JSON、CSV</p>
+            <input id="chatFileInput" type="file" multiple class="is-hidden">
+          </label>
+          <div id="chatSourceList" class="mt-sm">
+            <p class="empty-state">还没有上传材料。</p>
+          </div>
+        </section>
+
+        <hr class="drawer-divider">
+
+        <section class="drawer-section">
+          <p class="eyebrow">Code Workspace</p>
+          <div class="workspace-import-row">
+            <div class="form-group">
+              <label class="form-label" for="workspacePathInput">本地代码工作区路径</label>
+              <input id="workspacePathInput" type="text" placeholder="/home/user/project">
+            </div>
+            <button id="importWorkspaceButton" class="btn btn-secondary btn-sm">导入</button>
+          </div>
+          <div id="workspaceSummary" class="mt-sm">
+            <p class="empty-state">还没有导入代码工作区。</p>
+          </div>
+        </section>
+
+        <hr class="drawer-divider">
+
+        <section class="drawer-section">
+          <p class="eyebrow">Guardrails Contract</p>
+          <div class="btn-group">
+            <button id="analyzeGuardrailsButton" class="btn btn-secondary btn-sm">分析模板契约</button>
+            <button id="saveGuardrailsYamlButton" class="btn btn-primary btn-sm">保存 Guardrails YAML</button>
+          </div>
+          <div class="form-group mt-sm">
+            <label class="form-label" for="guardrailsYamlEditor">guardrails.yaml</label>
+            <textarea id="guardrailsYamlEditor" rows="16" class="latex-editor" spellcheck="false" placeholder="这里会显示当前项目的 guardrails.yaml。"></textarea>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <script src="/writing.js"></script>
+  </body>
+</html>

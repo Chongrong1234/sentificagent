@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -9,7 +10,38 @@ import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "library_rules.example.yaml"
+CONFIG_DIR = PROJECT_ROOT / "configs"
+EXAMPLE_CONFIG_PATH = CONFIG_DIR / "library_rules.example.yaml"
+USER_CONFIG_PATH = CONFIG_DIR / "library_rules.yaml"
+# Kept as a compatibility alias for callers that imported the old constant.
+DEFAULT_CONFIG_PATH = EXAMPLE_CONFIG_PATH
+
+
+def default_config_path() -> Path:
+    """Return the writable user config when initialized, otherwise the example."""
+    return USER_CONFIG_PATH if USER_CONFIG_PATH.exists() else EXAMPLE_CONFIG_PATH
+
+
+def initialize_config(
+    config_path: str | os.PathLike[str] | None = None,
+    *,
+    force: bool = False,
+) -> Path:
+    """Create a user config from the checked-in example template.
+
+    The example file is intentionally never a valid destination. This prevents an
+    accidental ``--force`` from overwriting the repository's reference config.
+    """
+    target = Path(config_path).expanduser() if config_path else USER_CONFIG_PATH
+    if not target.is_absolute():
+        target = (PROJECT_ROOT / target).resolve()
+    if target.resolve() == EXAMPLE_CONFIG_PATH.resolve():
+        raise ValueError("The example config is read-only; choose a user config path.")
+    if target.exists() and not force:
+        raise FileExistsError(f"Config already exists: {target}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(EXAMPLE_CONFIG_PATH, target)
+    return target
 
 
 @dataclass(frozen=True)
@@ -21,6 +53,12 @@ class AppConfig:
     records_dir: Path
     search_runs_dir: Path
     queue_dir: Path
+    attention_runs_dir: Path
+    summaries_dir: Path
+    schedules_dir: Path
+    reports_dir: Path
+    attention_state_dir: Path
+    library_db_path: Path
     browser_download_root: str
     path_template: str
     default_venue_tier: str
@@ -41,9 +79,8 @@ def _resolve_path(base_dir: Path, raw_path: str, fallback: Path) -> Path:
 
 
 def load_config(config_path: str | os.PathLike[str] | None = None) -> AppConfig:
-    resolved_path = Path(
-        config_path or os.environ.get("LIT_AGENT_CONFIG") or DEFAULT_CONFIG_PATH
-    ).expanduser()
+    requested_path = config_path or os.environ.get("LIT_AGENT_CONFIG")
+    resolved_path = Path(requested_path).expanduser() if requested_path else default_config_path()
     if not resolved_path.is_absolute():
         resolved_path = (PROJECT_ROOT / resolved_path).resolve()
 
@@ -51,6 +88,16 @@ def load_config(config_path: str | os.PathLike[str] | None = None) -> AppConfig:
         raw = yaml.safe_load(handle) or {}
 
     base_dir = resolved_path.parent
+    attention = raw.get("attention", {}) or {}
+    feeds_config = attention.get("feeds_config", "")
+    if feeds_config:
+        feeds_path = _resolve_path(base_dir, str(feeds_config), base_dir / str(feeds_config))
+        if feeds_path.exists():
+            with feeds_path.open("r", encoding="utf-8") as handle:
+                feed_rules = yaml.safe_load(handle) or {}
+            raw["attention"] = {**feed_rules, **attention}
+            raw["attention"].pop("feeds_config", None)
+
     storage = raw.get("storage", {})
     browser = raw.get("browser", {})
     classifier = raw.get("classifier", {})
@@ -66,6 +113,12 @@ def load_config(config_path: str | os.PathLike[str] | None = None) -> AppConfig:
     records_dir = root_dir / storage.get("records_dir", "records")
     search_runs_dir = root_dir / storage.get("search_runs_dir", "search_runs")
     queue_dir = root_dir / storage.get("queue_dir", "queue")
+    attention_runs_dir = root_dir / storage.get("attention_runs_dir", "attention_runs")
+    summaries_dir = root_dir / storage.get("summaries_dir", "summaries")
+    schedules_dir = root_dir / storage.get("schedules_dir", "schedules")
+    reports_dir = root_dir / storage.get("reports_dir", "reports")
+    attention_state_dir = root_dir / storage.get("attention_state_dir", "attention_state")
+    library_db_path = root_dir / storage.get("library_db", "library.sqlite3")
 
     return AppConfig(
         path=resolved_path,
@@ -75,6 +128,12 @@ def load_config(config_path: str | os.PathLike[str] | None = None) -> AppConfig:
         records_dir=records_dir,
         search_runs_dir=search_runs_dir,
         queue_dir=queue_dir,
+        attention_runs_dir=attention_runs_dir,
+        summaries_dir=summaries_dir,
+        schedules_dir=schedules_dir,
+        reports_dir=reports_dir,
+        attention_state_dir=attention_state_dir,
+        library_db_path=library_db_path,
         browser_download_root=browser.get("download_root", "scientific-agent"),
         path_template=classifier.get(
             "path_template",

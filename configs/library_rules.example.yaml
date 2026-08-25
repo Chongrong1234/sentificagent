@@ -3,12 +3,15 @@ storage:
   inbox_dir: inbox
   records_dir: records
   queue_dir: queue
+  library_db: library.sqlite3
+  reports_dir: reports
 browser:
   download_root: scientific-agent
 search:
   sources:
-    - openalex
-    - arxiv
+  - openalex
+  - arxiv
+  - semantic-scholar
   field_weights:
     title: 5.0
     abstract: 3.0
@@ -22,14 +25,79 @@ search:
     team_match_bonus: 2.0
     pdf_available_bonus: 1.0
   thresholds:
-    download_min_score: 8.0
+    download_min_score: 3.0
+attention:
+  query: large language model multimodal chain of thought debate crop growth model
+    artificial intelligence agriculture remote sensing
+  include_search: false
+  max_results: 80
+  summarize_min_score: 3.0
+  summarize_limit: 12
+  interval_seconds: 3600
+  report_language: zh
+  report_days: 7
+  report_top_n: 5
+  force_refresh: false
+  manual_urls: []
+  feed_urls:
+  - https://export.arxiv.org/api/query?search_query=all:%22smart%20agriculture%22%20OR%20all:%22precision%20agriculture%22%20OR%20all:%22agricultural%20artificial%20intelligence%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22remote%20sensing%22%20AND%20all:%22agriculture%22%20OR%20all:%22crop%20monitoring%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22large%20language%20model%22%20OR%20all:%22multimodal%20large%20language%20model%22%20OR%20all:%22vision-language%20model%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22chain%20of%20thought%22%20OR%20all:%22reasoning%20model%22%20OR%20all:%22test-time%20scaling%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22multi-agent%20debate%22%20OR%20all:%22LLM%20debate%22%20OR%20all:%22agent%20debate%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22crop%20growth%20model%22%20OR%20all:WOFOST%20OR%20all:DSSAT%20OR%20all:APSIM%20OR%20all:%22process-based%20crop%20model%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://rss.sciencedirect.com/publication/science/01681699
+  - https://rss.sciencedirect.com/publication/science/0308521X
+  - https://rss.sciencedirect.com/publication/science/03784290
+  - https://rss.sciencedirect.com/publication/science/01681923
+  - https://rss.sciencedirect.com/publication/science/00344257
+  - https://rss.sciencedirect.com/publication/science/09242716
+  - https://dblp.org/feed/streams/conf/nips.rss
+  - https://dblp.org/feed/streams/conf/icml.rss
+  - https://dblp.org/feed/streams/conf/iclr.rss
+  - https://dblp.org/feed/streams/conf/aaai.rss
+  - https://dblp.org/feed/streams/conf/ijcai.rss
+  - https://dblp.org/feed/streams/conf/acl.rss
+  - https://dblp.org/feed/streams/conf/cvpr.rss
+  - https://dblp.org/feed/streams/conf/iccv.rss
+  - https://dblp.org/feed/streams/conf/emnlp.rss
+  - https://dblp.org/feed/streams/conf/eccv.rss
+  - https://dblp.org/feed/streams/conf/colt.rss
+  - https://dblp.org/feed/streams/conf/ecai.rss
+  - https://dblp.org/feed/streams/conf/icra.rss
+  - https://dblp.org/feed/streams/conf/aips.rss
+  - https://dblp.org/feed/streams/conf/aistats.rss
+  - https://dblp.org/feed/streams/conf/accv.rss
+  - https://dblp.org/feed/streams/conf/acml.rss
+  - https://dblp.org/feed/streams/conf/bmvc.rss
+  - https://dblp.org/feed/streams/conf/nlpcc.rss
+  - https://dblp.org/feed/streams/conf/conll.rss
+  - https://dblp.org/feed/streams/conf/gecco.rss
+  - https://dblp.org/feed/streams/conf/ictai.rss
+  - https://dblp.org/feed/streams/conf/iros.rss
+  - https://dblp.org/feed/streams/conf/alt.rss
+  - https://dblp.org/feed/streams/conf/kdd.rss
+  - https://dblp.org/feed/streams/conf/sigir.rss
+  - https://dblp.org/feed/streams/conf/sigmod.rss
+  - https://dblp.org/feed/streams/conf/vldb.rss
+  - https://dblp.org/feed/streams/conf/icde.rss
+  - https://dblp.org/feed/streams/conf/www.rss
+  - https://dblp.org/feed/streams/conf/cikm.rss
+  - https://dblp.org/feed/streams/conf/wsdm.rss
+  - https://dblp.org/feed/streams/conf/icdm.rss
+  - https://dblp.org/feed/streams/conf/sdm.rss
+  - https://dblp.org/feed/streams/conf/edbt.rss
+  - https://dblp.org/feed/streams/conf/dasfaa.rss
+  - https://dblp.org/feed/streams/conf/pakdd.rss
+  summary_prompt: 你是科研注意力助手。请阅读论文或网页正文，输出 JSON object，不要使用 markdown。字段：summary, why_it_matters,
+    methods, datasets, limitations, next_actions, schedule_suggestion。
 publishers:
   ieee:
     domains:
-      - ieeexplore.ieee.org
+    - ieeexplore.ieee.org
   acm:
     domains:
-      - dl.acm.org
+    - dl.acm.org
 models:
   planner:
     provider: kimi
@@ -89,6 +157,104 @@ classifier:
       - ISPRS Journal of Photogrammetry and Remote Sensing
       - Remote Sensing of Environment
       - IEEE Transactions on Geoscience and Remote Sensing
+  - name: top-agricultural-journal
+    weight: 0.92
+    match:
+      venues:
+      - Agricultural Systems
+      - Computers and Electronics in Agriculture
+      - Field Crops Research
+      - European Journal of Agronomy
+      - Precision Agriculture
+      - Agricultural and Forest Meteorology
+      - Nature Food
+      - Nature Plants
+  - name: ccf-a-agriculture
+    weight: 0.96
+    match:
+      venues:
+      - AAAI
+      - ICML
+      - NeurIPS
+      - ICLR
+      keywords:
+      - agriculture
+      - crop
+      - farm
+      - spectral
+      - growth model
+  - name: top-neuroengineering
+    weight: 0.95
+    match:
+      venues:
+      - Nature Biomedical Engineering
+      - Nature Neuroscience
+      - IEEE Transactions on Biomedical Engineering
+      - Journal of Neural Engineering
+  - name: brain-inspired-ai
+    weight: 0.93
+    match:
+      venues:
+      - NeurIPS
+      - ICML
+      - ICLR
+      - Nature Machine Intelligence
+      keywords:
+      - spiking neural network
+      - neuromorphic
+      - brain-inspired
+      - neural coding
+  - name: top-robotics-autonomous-driving
+    weight: 0.96
+    match:
+      venues:
+      - CoRL
+      - RSS
+      - ICRA
+      - IROS
+      - RAL
+      - T-RO
+      - Autonomous Robots
+      keywords:
+      - autonomous driving
+      - vla
+      - vlm
+      - world model
+      - end-to-end driving
+  - name: top-vision-autonomous-driving
+    weight: 0.94
+    match:
+      venues:
+      - CVPR
+      - ICCV
+      - ECCV
+      keywords:
+      - autonomous driving
+      - vla
+      - world model
+      - driving scene
+  - name: top-power-energy
+    weight: 0.9
+    match:
+      venues:
+      - IEEE Transactions on Power Systems
+      - IEEE Transactions on Smart Grid
+      - Applied Energy
+      - IEEE Transactions on Sustainable Energy
+  - name: ai-power-system
+    weight: 0.93
+    match:
+      venues:
+      - NeurIPS
+      - ICML
+      - ICLR
+      - AAAI
+      - IEEE Transactions on Power Systems
+      keywords:
+      - reinforcement learning power system
+      - deep learning dispatch
+      - llm smart grid
+      - multi-agent energy
   research_teams:
   - name: advisor-group
     weight: 0.8
@@ -134,20 +300,301 @@ classifier:
     - earth observation
     - hyperspectral
   - name: smart-agriculture
-    weight: 0.95
+    weight: 0.96
     keywords:
     - smart agriculture
     - precision agriculture
     - crop monitoring
     - agricultural intelligence
+    - smart agriculture
+    - precision agriculture
+    - crop monitoring
+    - agricultural intelligence
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - agronomic recommendation
+    - agricultural advisory system
+    - smart agriculture
+    - precision agriculture
+    - crop monitoring
+    - agricultural intelligence
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - agronomic recommendation
+    - agricultural advisory system
+    - smart agriculture
+    - precision agriculture
+    - crop monitoring
+    - agricultural intelligence
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - agronomic recommendation
+    - agricultural advisory system
+    - smart agriculture
+    - precision agriculture
+    - crop monitoring
+    - agricultural intelligence
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - agronomic recommendation
+    - agricultural advisory system
+    - wofost
+    - apsim
+    - dssat
+    - crop growth model
+    - process-based model
+    - mechanistic model
+    - field experiment
+    - on-farm validation
+    - farm trial
+    - digital twin
+    - agricultural simulation
+    - smart agriculture
+    - precision agriculture
+    - crop monitoring
+    - agricultural intelligence
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - agronomic recommendation
+    - agricultural advisory system
+    - wofost
+    - apsim
+    - dssat
+    - crop growth model
+    - process-based model
+    - mechanistic model
+    - field experiment
+    - on-farm validation
+    - farm trial
+    - digital twin
+    - agricultural simulation
+    - uav agriculture
+    - drone crop monitoring
+    - uav phenotyping
+    - crop phenotyping
+    - high-throughput phenotyping
+    - field phenomics
+    - uav phenotyping
+    - phenotyping platform
+    - image-based phenotyping
+    - spectral phenotyping
+    - phenomic selection
+    - physiological trait
+    - agronomic trait estimation
+  - name: reinforcement-learning-agriculture
+    weight: 0.9
+    keywords:
+    - reinforcement learning agriculture
+    - rl crop management
+    - rl irrigation
+    - rl fertilization
+    - markov decision process agriculture
+    - sequential decision making farming
+    - wofost rl
+    - crop model rl
+  - name: llm-agriculture
+    weight: 0.95
+    keywords:
+    - llm agriculture
+    - large language model farming
+    - gpt agriculture
+    - llm crop management
+    - wofost llm
+    - crop model llm
+    - agricultural knowledge graph
+    - multi-agent agriculture
+    - agent debate agriculture
+    - agricultural copilot
+  - name: spectral-inversion
+    weight: 0.92
+    keywords:
+    - spectral inversion
+    - hyperspectral retrieval
+    - vegetation index
+    - biophysical parameter
+    - canopy reflectance
+    - radiative transfer
+    - prosail
+    - leaf area index
+    - chlorophyll content
+    - crop biochemical
+    - spectral signature agriculture
+    - spectral inversion
+    - hyperspectral retrieval
+    - vegetation index
+    - biophysical parameter
+    - canopy reflectance
+    - radiative transfer
+    - prosail
+    - leaf area index
+    - chlorophyll content
+    - crop biochemical
+    - spectral signature agriculture
+    - uav multispectral
+    - drone multispectral
+    - uav hyperspectral
+    - biomass estimation
+    - crop biomass
+    - above ground biomass
+    - agb retrieval
+    - uav spectral
+    - multispectral vegetation index
+    - narrowband index
+    - red edge inflection point
+    - ndre
+    - mtci
+    - canopy cover
+    - gap fraction
+    - fapar
+    - lai-2200
+    - hemispherical photography
+    - structure from motion
+    - sfm point cloud
+    - canopy height model
+    - chm
+    - crop surface model
+    - csm
+    - biomass accumulation
+    - above ground biomass
+    - agb
+    - dry matter accumulation
+    - canopy architecture
+    - leaf inclination angle
+  - name: brain-computer-interface
+    weight: 0.9
+    keywords:
+    - brain computer interface
+    - brain machine interface
+    - neural decoding
+    - motor imagery
+    - eeg decoding
+    - intracortical recording
+    - neural prosthetics
+    - cortical interface
+    - neural signal
+  - name: neuromorphic-computing
+    weight: 0.9
+    keywords:
+    - neuromorphic
+    - spiking neural network
+    - snn
+    - event based camera
+    - dynamic vision sensor
+    - neuromorphic hardware
+    - brain inspired chip
+    - in memory computing
+    - synaptic device
+  - name: computational-neuroscience
+    weight: 0.85
+    keywords:
+    - computational neuroscience
+    - neural coding
+    - population coding
+    - predictive coding
+    - synaptic plasticity
+    - stdp
+    - hebbian learning
+    - cortical circuit
+    - neural dynamics
+  - name: ground-penetrating-radar
+    weight: 0.88
+    keywords:
+    - ground penetrating radar
+    - gpr
+    - subsurface sensing
+    - georadar
+    - soil moisture gpr
+    - root detection gpr
+    - buried object detection
+    - subsurface imaging
+    - shallow geophysics
+    - electromagnetic subsurface sensing
+    - 探地雷达
+    - 地质雷达
+  - name: vla-vlm-autonomous-driving
+    weight: 0.95
+    keywords:
+    - vision language action
+    - vla
+    - vlm driving
+    - vision language model autonomous driving
+    - drivevlm
+    - drivegpt
+    - palme
+    - gato driving
+    - multimodal driving policy
+    - vlm planner
+    - llm driving decision
+  - name: world-model-driving
+    weight: 0.94
+    keywords:
+    - world model autonomous driving
+    - driving world model
+    - gaia-1
+    - dreamer driving
+    - isaac sim driving
+    - ' Neural Radiance Fields driving'
+    - nerf driving
+    - 3d gaussian splatting driving
+    - predictive driving model
+  - name: vln-navigation
+    weight: 0.9
+    keywords:
+    - vision language navigation
+    - vln
+    - embodied navigation
+    - navgpt
+    - lm nav
+    - language guided navigation
+    - instruction following robot
+    - visual language navigation
+  - name: power-system-optimization
+    weight: 0.85
+    keywords:
+    - power system optimization
+    - economic dispatch
+    - dynamic economic dispatch
+    - unit commitment
+    - optimal power flow
+    - dc opf
+    - ac opf
+    - microgrid optimization
+    - smart grid
+    - renewable energy integration
+    - wind power forecasting
+    - solar pv integration
+    - demand response
+    - virtual power plant
+    - vpp
+    - energy management system
+    - ems
+    - load frequency control
+    - agc
+    - transmission expansion planning
+    - distribution network reconfiguration
+    - agricultural load dispatch
+    - irrigation pump scheduling
+    - greenhouse energy management
 research_profile:
   priority_topics:
   - name: llm
-    weight: 1.0
+    weight: 1
     aliases:
     - large language model
     - language agent
     - reasoning model
+    - large language model
+    - language agent
+    - reasoning model
+    - llm agent
+    - multi-agent debate
+    - agentic workflow
+    - chain-of-thought
   - name: artificial-intelligence
     weight: 0.95
     aliases:
@@ -159,20 +606,223 @@ research_profile:
     - ml
     - deep learning
   - name: multimodal
-    weight: 0.92
+    weight: 0.93
     aliases:
     - vision-language
     - multimodal model
+    - vision-language
+    - multimodal model
+    - agricultural phenotyping
+    - uav imagery
+    - drone remote sensing
+    - crop image analysis
+    - vision-language
+    - multimodal model
+    - vision-language model
+    - vla
+    - vlm
+    - vision language action
+    - vision language navigation
+    action: update_aliases
   - name: remote-sensing
     weight: 0.95
     aliases:
     - earth observation
     - satellite image
   - name: smart-agriculture
-    weight: 0.95
+    weight: 0.96
     aliases:
     - precision agriculture
     - agricultural ai
+    - precision agriculture
+    - agricultural ai
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - precision agriculture
+    - agricultural ai
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - precision agriculture
+    - agricultural ai
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - precision agriculture
+    - agricultural ai
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - crop growth model
+    - wofost
+    - apsim
+    - dssat
+    - agronomic simulation
+    - field validation
+    - on-farm trial
+    - digital twin agriculture
+    - agricultural cyber-physical system
+    - precision agriculture
+    - agricultural ai
+    - agricultural decision making
+    - farming decision support
+    - crop management
+    - crop growth model
+    - wofost
+    - apsim
+    - dssat
+    - agronomic simulation
+    - field validation
+    - on-farm trial
+    - digital twin agriculture
+    - agricultural cyber-physical system
+    - uav application agriculture
+    - drone agriculture
+    - uav crop monitoring
+    - crop phenotyping
+    - high-throughput phenotyping
+    - uav phenotyping
+    - field phenomics
+    - precision crop management
+    - agricultural phenomics
+    - uav-based phenotyping
+    action: update_aliases
+  - name: reinforcement-learning-agriculture
+    weight: 0.9
+    aliases:
+    - rl agriculture
+    - reinforcement learning crop management
+    - rl irrigation
+    - rl fertilization
+    - sequential decision agriculture
+  - name: spectral-inversion
+    weight: 0.92
+    aliases:
+    - spectral retrieval
+    - biophysical parameter estimation
+    - vegetation index inversion
+    - hyperspectral inversion
+    - canopy reflectance model
+    - radiative transfer model
+    - prosail
+    - leaf area index retrieval
+    - chlorophyll estimation
+    - crop biochemical parameter
+    - spectral retrieval
+    - biophysical parameter estimation
+    - vegetation index inversion
+    - hyperspectral inversion
+    - canopy reflectance model
+    - radiative transfer model
+    - prosail
+    - leaf area index retrieval
+    - chlorophyll estimation
+    - crop biochemical parameter
+    - uav multispectral
+    - drone multispectral
+    - uav hyperspectral
+    - biomass estimation
+    - crop biomass
+    - above ground biomass retrieval
+    - agb estimation
+    - uav spectral inversion
+    - uav multispectral inversion
+    - drone hyperspectral retrieval
+    - canopy cover estimation
+    - fapar retrieval
+    - gap fraction
+    - ndvi lai
+    - msavi
+    - savi
+    - canopy height model
+    - chm retrieval
+    - crop surface model
+    - csm
+    - phenotyping uav
+    - high-throughput phenotyping
+    - vegetation indices inversion
+    - narrowband vegetation index
+    - red edge vegetation index
+    action: update_aliases
+  - name: brain-computer-interface
+    weight: 0.85
+    aliases:
+    - brain machine interface
+    - bci
+    - neural interface
+    - cortical implant
+    - neural prosthesis
+    - motor cortex decoding
+    - neural signal processing
+  - name: neuromorphic-computing
+    weight: 0.85
+    aliases:
+    - brain-inspired computing
+    - spiking neural network
+    - snn
+    - event-based vision
+    - neuromorphic chip
+    - in-memory computing
+    - loihi
+    - truenorth
+  - name: neural-computation
+    weight: 0.8
+    aliases:
+    - computational neuroscience
+    - neural coding
+    - population coding
+    - predictive coding
+    - biological neural network
+    - synaptic plasticity
+    - stdp
+  - name: ground-penetrating-radar
+    weight: 0.88
+    aliases:
+    - ground penetrating radar
+    - gpr
+    - subsurface radar
+    - surface-penetrating radar
+    - georadar
+    - 探地雷达
+    - 地质雷达
+    - 地面穿透雷达
+    - gpr agriculture
+    - gpr soil moisture
+    - gpr root detection
+    - subsurface imaging
+    - shallow geophysics
+  - name: embodied-ai-autonomous-driving
+    weight: 0.95
+    aliases:
+    - autonomous driving
+    - self-driving
+    - end-to-end driving
+    - driving scene understanding
+    - vehicular ai
+    - vla
+    - vln
+    - vlm driving
+    - vision language action
+    - vision language navigation
+    - world model driving
+    - gaia-1
+    - drivegpt
+    - uniad
+    - navgpt
+  - name: power-system-optimization
+    weight: 0.85
+    aliases:
+    - economic dispatch
+    - unit commitment
+    - optimal power flow
+    - microgrid optimization
+    - smart grid dispatch
+    - renewable integration
+    - demand response
+    - virtual power plant
+    - agricultural microgrid
+    - irrigation energy management
   venue_priorities:
   - name: Nature
     weight: 1.0
@@ -202,6 +852,54 @@ research_profile:
     weight: 0.93
   - name: IJCAI
     weight: 0.92
+  - name: Agricultural Systems
+    weight: 0.94
+  - name: Computers and Electronics in Agriculture
+    weight: 0.93
+  - name: Field Crops Research
+    weight: 0.92
+  - name: European Journal of Agronomy
+    weight: 0.91
+  - name: Precision Agriculture
+    weight: 0.9
+  - name: Agricultural and Forest Meteorology
+    weight: 0.89
+  - name: Nature Food
+    weight: 0.98
+  - name: Nature Plants
+    weight: 0.97
+  - name: Nature Neuroscience
+    weight: 0.98
+  - name: Nature Biomedical Engineering
+    weight: 0.97
+  - name: Nature Machine Intelligence
+    weight: 0.96
+  - name: IEEE Transactions on Biomedical Engineering
+    weight: 0.9
+  - name: Journal of Neural Engineering
+    weight: 0.88
+  - name: NeuroImage
+    weight: 0.85
+  - name: Frontiers in Neuroscience
+    weight: 0.82
+  - name: IEEE Transactions on Neural Networks and Learning Systems
+    weight: 0.9
+  - name: Neuromorphic Computing and Engineering
+    weight: 0.87
+  - name: IEEE Transactions on Power Systems
+    weight: 0.9
+  - name: IEEE Transactions on Smart Grid
+    weight: 0.9
+  - name: Applied Energy
+    weight: 0.88
+  - name: Energy
+    weight: 0.86
+  - name: IEEE Transactions on Sustainable Energy
+    weight: 0.87
+  - name: Electric Power Systems Research
+    weight: 0.84
+  - name: International Journal of Electrical Power & Energy Systems
+    weight: 0.83
   update_policy:
     allow_new_topics: true
     allow_weight_updates: true

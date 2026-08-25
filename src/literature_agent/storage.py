@@ -9,6 +9,7 @@ from urllib import request
 
 from .classifier import classify_capture
 from .config import AppConfig
+from .library_store import record_discovered_papers
 
 
 def slugify(value: str) -> str:
@@ -78,25 +79,41 @@ def _build_record_paths(
     }
 
 
+def build_download_plan(
+    config: AppConfig,
+    paper: dict[str, Any],
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    classification = classify_capture(config, paper, overrides or {})
+    title_seed = _first_non_empty(paper.get("title"), paper.get("doi"), paper.get("page_url"), "paper")
+    slug = slugify(title_seed)
+    paths = _build_record_paths(config, paper, classification, slug)
+    route = str(paths["route"]).replace("\\", "/")
+    return {
+        "classification": classification,
+        "relative_dir": route,
+        "suggested_filename": str(
+            PurePosixPath(config.browser_download_root) / route / f"{slug}.pdf"
+        ),
+        "record_pdf_path": str(paths["pdf"]),
+    }
+
+
 def persist_capture(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any]:
     paper = payload.get("paper", {})
     overrides = payload.get("overrides", {}) or {}
     classification = classify_capture(config, paper, overrides)
+    captured_at = payload.get("captured_at") or datetime.now(timezone.utc).isoformat()
 
     title_seed = _first_non_empty(paper.get("title"), paper.get("doi"), paper.get("page_url"), "paper")
     slug = slugify(title_seed)
     paths = _build_record_paths(config, paper, classification, slug)
     route = str(paths["route"]).replace("\\", "/")
 
-    download_plan = {
-        "relative_dir": route,
-        "suggested_filename": str(
-            PurePosixPath(config.browser_download_root) / route / f"{slug}.pdf"
-        ),
-    }
+    download_plan = build_download_plan(config, paper, overrides)
 
     record = {
-        "captured_at": payload.get("captured_at") or timestamp,
+        "captured_at": captured_at,
         "capture_source": payload.get("source", {}),
         "paper": paper,
         "overrides": overrides,
@@ -106,6 +123,7 @@ def persist_capture(config: AppConfig, payload: dict[str, Any]) -> dict[str, Any
 
     _write_json(paths["inbox"], payload)
     _write_json(paths["metadata"], record)
+    record_discovered_papers(config, "browser-capture", [paper])
 
     return {
         "status": "ok",
@@ -129,20 +147,16 @@ def persist_library_paper(
     title_seed = _first_non_empty(paper.get("title"), paper.get("doi"), paper.get("page_url"), "paper")
     slug = slugify(title_seed)
     paths = _build_record_paths(config, paper, classification, slug)
-    route = str(paths["route"]).replace("\\", "/")
-
     record = {
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "capture_source": source or {"trigger": "local-service"},
         "paper": paper,
         "overrides": resolved_overrides,
         "classification": classification,
-        "download_plan": {
-            "relative_dir": route,
-            "record_pdf_path": str(paths["pdf"]),
-        },
+        "download_plan": build_download_plan(config, paper, resolved_overrides),
     }
     _write_json(paths["metadata"], record)
+    record_discovered_papers(config, str((source or {}).get("trigger") or "local-service"), [paper])
     return {
         "classification": classification,
         "paths": {

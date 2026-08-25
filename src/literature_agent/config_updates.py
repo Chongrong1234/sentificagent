@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
+import shutil
 from typing import Any
 
 import yaml
 
-from .config import AppConfig
+from .config import AppConfig, EXAMPLE_CONFIG_PATH, USER_CONFIG_PATH
 
 
 def _merge_dict(base: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
@@ -47,6 +48,14 @@ def preview_config_update(config: AppConfig, patch: dict[str, Any]) -> dict[str,
 
 def apply_config_update(config: AppConfig, patch: dict[str, Any]) -> Path:
     updated = preview_config_update(config, patch)
-    with config.path.open("w", encoding="utf-8") as handle:
+    target = config.path
+    # Never turn the checked-in example into a mutable runtime database. When
+    # the app starts before `init`, materialize the user copy on first update.
+    if target.resolve() == EXAMPLE_CONFIG_PATH.resolve():
+        target = USER_CONFIG_PATH
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists():
+            shutil.copyfile(EXAMPLE_CONFIG_PATH, target)
+    with target.open("w", encoding="utf-8") as handle:
         yaml.safe_dump(updated, handle, allow_unicode=True, sort_keys=False)
-    return config.path
+    return target

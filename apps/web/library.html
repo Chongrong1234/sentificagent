@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scientific Agent — Library Graph</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main class="shell shell-wide">
+      <header class="subnav">
+        <a class="subnav-brand" href="/">Scientific Agent</a>
+        <nav class="subnav-links">
+          <a href="/workspace">控制台</a>
+          <a href="/writing">RAG 写作</a>
+          <a class="active" href="/library">文献图谱</a>
+        </nav>
+      </header>
+
+      <!-- Header + Stats -->
+      <section class="flex-between" style="margin-bottom:var(--space-md)">
+        <div>
+          <p class="eyebrow">Library Graph</p>
+          <h1>文献主题图谱</h1>
+          <p class="text-sm text-muted">先看主题，再进入对应文献库。浏览主题关系、论文详情和高价值原文入口。</p>
+        </div>
+        <div class="badge-group">
+          <span class="badge">主题：<strong id="topicCount">0</strong></span>
+          <span class="badge">关系：<strong id="graphEdgeCount">0</strong></span>
+          <span class="badge">文献：<strong id="graphPaperCount">0</strong></span>
+        </div>
+      </section>
+
+      <!-- Search Bar -->
+      <section class="card flex-between" style="margin-bottom:var(--space-md)">
+        <div class="form-group" style="flex:1;max-width:480px">
+          <label class="form-label" for="libraryTopicQuery">检索主题</label>
+          <input id="libraryTopicQuery" type="search" placeholder="remote sensing / llm / smart agriculture">
+        </div>
+        <div class="btn-group" style="align-self:flex-end">
+          <button id="libraryTopicSearchButton" class="btn btn-primary btn-sm">搜索主题</button>
+          <button id="libraryGraphRefreshButton" class="btn btn-ghost btn-sm">刷新图谱</button>
+        </div>
+      </section>
+
+      <!-- 3-Column Layout -->
+      <div class="library-layout">
+        <!-- Left: Topic List -->
+        <section class="library-column">
+          <p class="eyebrow">Topics</p>
+          <h3>主题列表</h3>
+          <div id="topicSearchList">
+            <p class="empty-state">等待主题加载...</p>
+          </div>
+        </section>
+
+        <!-- Center: Graph + Topic Papers -->
+        <section class="library-column">
+          <p class="eyebrow">Graph</p>
+          <h3>主题关系图</h3>
+          <div id="graphCanvas" class="graph-canvas">
+            <p class="empty-state">图谱加载后会显示在这里。</p>
+          </div>
+          <div id="topicPanel" class="topic-panel mt-sm">
+            <div class="flex-between">
+              <div>
+                <p class="eyebrow">Topic Library</p>
+                <h3 id="activeTopicTitle">尚未选择主题</h3>
+              </div>
+              <span id="activeTopicMeta" class="badge badge-ghost">点击图谱节点或左侧主题列表</span>
+            </div>
+            <div id="topicPaperList" class="result-list mt-sm">
+              <p class="empty-state">选中主题后，这里会显示相关论文列表。</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Paper Detail -->
+        <section class="library-column">
+          <p class="eyebrow">Paper</p>
+          <h3>论文详情</h3>
+          <div id="paperDetailPanel" class="paper-detail-panel">
+            <p class="empty-state">点开论文后，这里会显示题目、分数、摘要、PDF 与原文链接。</p>
+          </div>
+        </section>
+      </div>
+
+      <details class="mt-md">
+        <summary>查看图谱 / 主题原始 JSON</summary>
+        <pre id="searchOutput">等待图谱加载...</pre>
+      </details>
+    </main>
+
+    <script src="/library.js"></script>
+  </body>
+</html>

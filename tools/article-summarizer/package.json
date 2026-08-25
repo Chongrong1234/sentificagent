@@ -1,0 +1,18 @@
+{
+  "name": "scientific-agent-article-summarizer",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "summarize": "node src/fetch-articles.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.4.2",
+    "dotenv": "^16.0.3",
+    "jsdom": "^21.1.1",
+    "openai": "^4.87.3",
+    "playwright": "^1.51.1"
+  }
+}

@@ -1,0 +1,27 @@
+schema_version: 1
+template:
+  id: hithesis-harbin-bachelor-en
+  name: HIT 哈尔滨本科英文论文
+  source: llm-generated
+immutable_zones:
+- id: documentclass
+  description: \documentclass 行及所有选项
+  detection: regex:\\documentclass
+- id: preamble
+  description: \begin{document} 之前的导言区
+  detection: preamble
+- id: bibliography_tail
+  description: 参考文献尾区
+  detection: bibliography_tail
+- id: end_document
+  description: \end{document}
+  detection: regex:\\end{document}
+citation:
+  style: bibtex
+  command: \cite{}
+  bib_files: []
+  require_approval: true
+  min_strength: 2
+sections: []
+defaults:
+  top_level_heading: \section

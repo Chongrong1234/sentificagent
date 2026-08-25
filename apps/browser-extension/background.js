@@ -81,18 +81,22 @@ async function processQueueBatch(serverUrl) {
       continue;
     }
 
+    const suggestedFilename =
+      item.download_plan &&
+      item.download_plan.suggested_filename;
     const fallbackFilename = `scientific-agent/queue/${slugify(item.paper.title)}.pdf`;
     try {
       const downloadId = await chrome.downloads.download({
         url: item.paper.pdf_url,
-        filename: fallbackFilename,
+        filename: suggestedFilename || fallbackFilename,
         conflictAction: "uniquify",
         saveAs: false
       });
       downloads.push({
         title: item.paper.title || "unknown",
         status: "started",
-        downloadId
+        downloadId,
+        filename: suggestedFilename || fallbackFilename
       });
     } catch (error) {
       downloads.push({

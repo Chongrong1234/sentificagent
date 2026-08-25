@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import urllib.parse
 import xml.etree.ElementTree as ET
 from typing import Any
@@ -10,6 +11,7 @@ from urllib import error, request
 
 ARXIV_API_URL = "http://export.arxiv.org/api/query"
 OPENALEX_API_URL = "https://api.openalex.org/works"
+SEMANTIC_SCHOLAR_API_URL = "https://api.semanticscholar.org/graph/v1/paper"
 USER_AGENT = "scientific-agent/0.1"
 
 
@@ -40,6 +42,81 @@ def _domain_from_url(url: str) -> str:
         return urllib.parse.urlparse(url).netloc or ""
     except ValueError:
         return ""
+
+
+def _semantic_scholar_id(paper: dict[str, Any]) -> str:
+    doi = str(paper.get("doi") or "").strip()
+    if doi:
+        return f"DOI:{doi.removeprefix('https://doi.org/')}"
+    arxiv_match = re.search(r"arxiv\.org/(?:abs|pdf)/([^/?#]+)", str(paper.get("page_url") or paper.get("pdf_url") or ""), re.I)
+    if arxiv_match:
+        return f"ARXIV:{arxiv_match.group(1).removesuffix('.pdf')}"
+    return str(paper.get("semantic_scholar_id") or paper.get("id") or "").strip()
+
+
+def semantic_scholar_references(paper: dict[str, Any], limit: int = 20) -> list[dict[str, Any]]:
+    paper_id = _semantic_scholar_id(paper)
+    if not paper_id:
+        return []
+    fields = "references.title,references.abstract,references.year,references.venue,references.authors,references.url,references.externalIds,references.openAccessPdf,references.publicationVenue"
+    url = f"{SEMANTIC_SCHOLAR_API_URL}/{urllib.parse.quote(paper_id, safe=':')}"
+    params = urllib.parse.urlencode({"fields": fields})
+    try:
+        payload = _http_get(f"{url}?{params}")
+    except Exception:
+        return []
+    response = json.loads(payload)
+    references = response.get("references") or []
+    items: list[dict[str, Any]] = []
+    for ref in references[:limit]:
+        if not isinstance(ref, dict) or not ref.get("title"):
+            continue
+        external = ref.get("externalIds") or {}
+        doi = str(external.get("DOI") or "").strip()
+        arxiv = str(external.get("ArXiv") or "").strip()
+        page_url = str(ref.get("url") or "").strip()
+        if doi and not page_url:
+            page_url = f"https://doi.org/{doi}"
+        if arxiv and not page_url:
+            page_url = f"https://arxiv.org/abs/{arxiv}"
+        pdf_url = ""
+        oa_pdf = ref.get("openAccessPdf") or {}
+        if isinstance(oa_pdf, dict):
+            pdf_url = str(oa_pdf.get("url") or "").strip()
+        if arxiv and not pdf_url:
+            pdf_url = f"https://arxiv.org/pdf/{arxiv}"
+        venue = str(ref.get("venue") or "").strip()
+        publication_venue = ref.get("publicationVenue") or {}
+        if isinstance(publication_venue, dict) and publication_venue.get("name"):
+            venue = str(publication_venue["name"])
+        authors = [
+            str(author.get("name") or "").strip()
+            for author in (ref.get("authors") or [])
+            if isinstance(author, dict) and author.get("name")
+        ]
+        items.append(
+            {
+                "id": str(ref.get("paperId") or doi or arxiv or ref.get("title")),
+                "source_name": "semantic-scholar-reference",
+                "source_domain": _domain_from_url(page_url) or "semanticscholar.org",
+                "page_url": page_url,
+                "pdf_url": pdf_url,
+                "title": str(ref.get("title") or "").strip(),
+                "abstract": str(ref.get("abstract") or "").strip(),
+                "authors": authors,
+                "affiliations": [],
+                "keywords": [],
+                "journal": venue,
+                "conference": "",
+                "venue": venue,
+                "publisher": "",
+                "year": str(ref.get("year") or "unknown-year"),
+                "doi": f"https://doi.org/{doi}" if doi else "",
+                "semantic_scholar_id": str(ref.get("paperId") or ""),
+                "reference_of": paper.get("title", ""),
+            }
+        )
+    return _dedupe(items)
 
 
 def search_arxiv(query: str, max_results: int) -> list[dict[str, Any]]:
@@ -183,6 +260,73 @@ def search_openalex(query: str, max_results: int) -> list[dict[str, Any]]:
     return items
 
 
+def search_semantic_scholar(query: str, max_results: int) -> list[dict[str, Any]]:
+    fields = "title,abstract,year,authors,venue,url,externalIds,openAccessPdf,publicationVenue,journal"
+    params = urllib.parse.urlencode(
+        {
+            "query": query,
+            "limit": min(max_results, 100),
+            "fields": fields,
+        }
+    )
+    payload = _http_get(f"{SEMANTIC_SCHOLAR_API_URL}/search?{params}")
+    response = json.loads(payload)
+    data = response.get("data", [])
+
+    items: list[dict[str, Any]] = []
+    for paper in data:
+        if not isinstance(paper, dict) or not paper.get("title"):
+            continue
+        external = paper.get("externalIds") or {}
+        doi = str(external.get("DOI") or "").strip()
+        arxiv_id = str(external.get("ArXiv") or "").strip()
+        page_url = str(paper.get("url") or "").strip()
+        if doi and not page_url:
+            page_url = f"https://doi.org/{doi}"
+        if arxiv_id and not page_url:
+            page_url = f"https://arxiv.org/abs/{arxiv_id}"
+        pdf_url = ""
+        oa_pdf = paper.get("openAccessPdf") or {}
+        if isinstance(oa_pdf, dict):
+            pdf_url = str(oa_pdf.get("url") or "").strip()
+        if arxiv_id and not pdf_url:
+            pdf_url = f"https://arxiv.org/pdf/{arxiv_id}"
+        authors = [
+            str(a.get("name") or "").strip()
+            for a in (paper.get("authors") or [])
+            if isinstance(a, dict) and a.get("name")
+        ]
+        venue = str(paper.get("venue") or "").strip()
+        pub_venue = paper.get("publicationVenue") or {}
+        if isinstance(pub_venue, dict) and pub_venue.get("name"):
+            venue = str(pub_venue["name"])
+        journal = paper.get("journal") or {}
+        journal_name = str(journal.get("name") or venue or "").strip()
+
+        items.append(
+            {
+                "id": str(paper.get("paperId") or doi or paper.get("title")),
+                "source_name": "semantic-scholar",
+                "source_domain": "semanticscholar.org",
+                "page_url": page_url,
+                "pdf_url": pdf_url,
+                "title": str(paper.get("title") or "").strip(),
+                "abstract": str(paper.get("abstract") or "").strip(),
+                "authors": authors,
+                "affiliations": [],
+                "keywords": [],
+                "journal": journal_name,
+                "conference": "",
+                "venue": journal_name or venue,
+                "publisher": "",
+                "year": str(paper.get("year") or "unknown-year"),
+                "doi": f"https://doi.org/{doi}" if doi else "",
+                "semantic_scholar_id": str(paper.get("paperId") or ""),
+            }
+        )
+    return items
+
+
 def _dedupe(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     deduped: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -202,7 +346,7 @@ def search_literature(
     max_results: int,
     sources: list[str] | None = None,
 ) -> list[dict[str, Any]]:
-    selected_sources = sources or ["openalex", "arxiv"]
+    selected_sources = sources or ["openalex", "arxiv", "semantic-scholar"]
     per_source = max(1, math.ceil(max_results / max(len(selected_sources), 1)))
 
     results: list[dict[str, Any]] = []
@@ -212,6 +356,8 @@ def search_literature(
                 results.extend(search_openalex(query, per_source))
             elif source_name == "arxiv":
                 results.extend(search_arxiv(query, per_source))
+            elif source_name == "semantic-scholar":
+                results.extend(search_semantic_scholar(query, per_source))
         except error.HTTPError as exc:
             if exc.code == 429:
                 continue

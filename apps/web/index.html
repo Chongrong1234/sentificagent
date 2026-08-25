@@ -3,91 +3,90 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Scientific Agent</title>
+    <title>Scientific Agent Lab</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
+    <div id="toastContainer" class="toast-container"></div>
     <main class="shell">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">Scientific Agent</p>
-          <h1>科研文献智能体</h1>
+      <section class="hero hero-home">
+        <div class="hero-copy">
+          <p class="eyebrow">Scientific Agent / Research Operating System</p>
+          <h1>科研文献与写作智能体</h1>
           <p class="intro">
-            本地运行，Kimi 驱动。先聊天，再逐步更新你的研究兴趣、关键词、期刊会议权重和文献优先级。
+            这是一个围绕正式科研工作流搭建的本地系统：抓取文献，按规则分级入库，沉淀主题图谱，并基于本地证据完成正式论文与基金写作。
+            首页只保留四个核心能力入口，具体工作在独立页面完成。
           </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="/workspace">进入控制台</a>
+            <a class="btn btn-secondary btn-lg" href="/writing">打开写作工作台</a>
+            <a class="btn btn-ghost btn-lg" href="/library">文献图谱</a>
+          </div>
         </div>
-        <div class="status-card">
-          <div>模型</div>
-          <strong id="modelLabel">kimi-k2.5</strong>
-          <div>配置文件</div>
-          <code id="configPath">loading...</code>
+        <div class="lab-card">
+          <div class="orbital">
+            <span></span>
+            <span></span>
+            <span></span>
+            <strong>IRIS</strong>
+          </div>
+          <dl class="runtime-grid">
+            <div>
+              <dt>服务</dt>
+              <dd id="serviceStatus">checking</dd>
+            </div>
+            <div>
+              <dt>模型</dt>
+              <dd id="modelLabel">kimi-k2.5</dd>
+            </div>
+            <div class="wide">
+              <dt>配置文件</dt>
+              <dd><code id="configPath">loading...</code></dd>
+            </div>
+            <div class="wide">
+              <dt>知识库根目录</dt>
+              <dd><code id="libraryRoot">loading...</code></dd>
+            </div>
+          </dl>
         </div>
       </section>
 
-      <section class="workspace">
-        <aside class="sidebar">
-          <label for="apiKey">Kimi API Key</label>
-          <input id="apiKey" type="password" placeholder="sk-...">
+      <section class="home-grid">
+        <a class="home-card" href="/workspace">
+          <p class="eyebrow">Capture + Storage</p>
+          <h2>文献爬取与分级存储</h2>
+          <p>执行批量检索、浏览下载队列、触发 attention 抓取，并把论文按等级、方向、年份落入本地库。</p>
+        </a>
+        <a class="home-card" href="/writing">
+          <p class="eyebrow">RAG Writing</p>
+          <h2>RAG 写作工作台</h2>
+          <p>导入 LaTeX 项目或模板源码，基于本地证据生成正式初稿，并在项目工作台中持续改写与编译。</p>
+        </a>
+        <a class="home-card" href="/library">
+          <p class="eyebrow">Knowledge Graph</p>
+          <h2>文献图谱</h2>
+          <p>围绕主题节点浏览本地文献网络，追踪主题关系、论文详情和高价值原文入口。</p>
+        </a>
+      </section>
 
-          <label for="prompt">对智能体说</label>
-          <textarea id="prompt" placeholder="例如：帮我提高遥感与多模态农业方向的优先级，并补充顶会权重。"></textarea>
-
-          <button id="sendButton">发送</button>
-          <button id="applyButton" class="ghost" disabled>应用建议配置</button>
-          <button id="agentRunButton" class="ghost">应用配置并执行计划</button>
-
-          <div class="divider"></div>
-
-          <label for="searchQuery">批量检索主题</label>
-          <textarea id="searchQuery" placeholder="例如：large language model remote sensing agriculture"></textarea>
-
-          <div class="row">
-            <div>
-              <label for="maxResults">结果数</label>
-              <input id="maxResults" type="number" min="1" max="100" value="20">
-            </div>
-            <div>
-              <label for="minScore">下载阈值</label>
-              <input id="minScore" type="number" min="0" step="0.1" value="8.0">
-            </div>
-          </div>
-
-          <button id="searchButton">只检索</button>
-          <button id="searchDownloadButton" class="ghost">检索并批量下载</button>
-
-          <div class="hint">
-            当前界面不会把 API Key 写入仓库。你仍然应该尽快轮换刚才发出的那把 key。
-          </div>
-        </aside>
-
-        <section class="chat-panel">
-          <div class="panel">
-            <h2>对话</h2>
-            <pre id="chatOutput">等待输入...</pre>
-          </div>
-
-          <div class="panel">
-            <h2>建议配置补丁</h2>
-            <pre id="patchOutput">{}</pre>
-          </div>
-
-          <div class="panel">
-            <h2>智能体计划</h2>
-            <pre id="planOutput">{}</pre>
-          </div>
-
-          <div class="panel">
-            <h2>配置预览</h2>
-            <pre id="configOutput">loading...</pre>
-          </div>
-
-          <div class="panel">
-            <h2>批量检索结果</h2>
-            <pre id="searchOutput">等待检索...</pre>
-          </div>
-        </section>
+      <section class="home-stats">
+        <article class="stat-card">
+          <span>文献总量</span>
+          <strong id="graphPaperCount">0</strong>
+          <p>本地已入库论文</p>
+        </article>
+        <article class="stat-card">
+          <span>主题节点</span>
+          <strong id="topicCount">0</strong>
+          <p>自动抽取的主题</p>
+        </article>
+        <article class="stat-card">
+          <span>主题关系</span>
+          <strong id="graphEdgeCount">0</strong>
+          <p>主题之间的共现连接</p>
+        </article>
       </section>
     </main>
-    <script src="/app.js"></script>
+    <script src="/home.js"></script>
   </body>
 </html>

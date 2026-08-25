@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scientific Agent — Workspace</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main class="shell shell-wide">
+      <header class="subnav">
+        <a class="subnav-brand" href="/">Scientific Agent</a>
+        <nav class="subnav-links">
+          <a class="active" href="/workspace">控制台</a>
+          <a href="/writing">RAG 写作</a>
+          <a href="/library">文献图谱</a>
+        </nav>
+      </header>
+
+      <!-- Workspace Tab Navigation -->
+      <nav class="workspace-tab-nav">
+        <button class="workspace-tab-btn active" data-tab="research">Research</button>
+        <button class="workspace-tab-btn" data-tab="attention">Attention</button>
+        <button class="workspace-tab-btn" data-tab="reports">Reports</button>
+      </nav>
+
+      <div class="workspace-layout">
+        <!-- Left: Control Panel -->
+        <aside class="workspace-panel" id="workspaceControls">
+          <!-- ═══ Research Tab Controls ═══ -->
+          <div id="controls-research" class="studio-section">
+            <div class="card">
+              <p class="eyebrow">Model</p>
+              <div class="form-group">
+                <label class="form-label" for="modelProvider">全局模型</label>
+                <select id="modelProvider">
+                  <option value="kimi">Kimi</option>
+                  <option value="ds">DeepSeek</option>
+                </select>
+              </div>
+              <p class="form-hint">API key 保存在后台 .secrets/，前端无需重复输入。</p>
+            </div>
+
+            <div class="card mt-sm">
+              <p class="eyebrow">Research Goal</p>
+              <div class="form-group">
+                <label class="form-label" for="prompt">向科研智能体描述目标</label>
+                <textarea id="prompt" rows="3" placeholder="例如：提高脑机接口、神经工程方向权重，生成适合近期检索的正式论文搜索词。"></textarea>
+              </div>
+              <div class="btn-group mt-sm">
+                <button id="sendButton" class="btn btn-primary">生成研究计划</button>
+                <button id="applyButton" class="btn btn-ghost" disabled>应用配置补丁</button>
+                <button id="agentRunButton" class="btn btn-secondary">应用并执行计划</button>
+              </div>
+            </div>
+
+            <div class="card mt-sm">
+              <p class="eyebrow">Batch Search</p>
+              <div class="form-group">
+                <label class="form-label" for="searchQuery">检索主题</label>
+                <textarea id="searchQuery" rows="2" placeholder="brain computer interface neural interface review"></textarea>
+              </div>
+              <div class="form-row mt-sm">
+                <div class="form-group">
+                  <label class="form-label" for="maxResults">结果数</label>
+                  <input id="maxResults" type="number" min="1" max="100" value="50">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="minScore">下载阈值</label>
+                  <input id="minScore" type="number" min="0" step="0.1" value="3.0">
+                </div>
+              </div>
+              <div class="btn-group mt-sm">
+                <button id="searchButton" class="btn btn-ghost">只检索</button>
+                <button id="searchDownloadButton" class="btn btn-primary">检索并下载</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══ Attention Tab Controls ═══ -->
+          <div id="controls-attention" class="studio-section is-hidden">
+            <div class="card">
+              <p class="eyebrow">Attention Feed</p>
+              <p class="text-sm text-muted">订阅源、关键词、阈值、摘要数量来自配置文件。</p>
+              <label class="check-row mt-sm" for="attentionUseAi" style="display:flex;align-items:center;gap:8px">
+                <input id="attentionUseAi" type="checkbox" checked>
+                <span class="text-sm">启用异步 AI 总结</span>
+              </label>
+              <div class="btn-group mt-sm">
+                <button id="attentionRunButton" class="btn btn-primary">按配置运行</button>
+                <button id="attentionRefreshButton" class="btn btn-ghost">刷新任务</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══ Reports Tab Controls ═══ -->
+          <div id="controls-reports" class="studio-section is-hidden">
+            <div class="card">
+              <p class="eyebrow">Survey Report</p>
+              <div class="form-group">
+                <label class="form-label" for="reportQuery">报告主题</label>
+                <textarea id="reportQuery" rows="2" placeholder="留空时优先使用当前检索主题或按整体文献库生成"></textarea>
+              </div>
+              <div class="form-row mt-sm">
+                <div class="form-group">
+                  <label class="form-label" for="reportLimit">覆盖篇数</label>
+                  <input id="reportLimit" type="number" min="1" max="50" value="8">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="reportLanguage">报告语言</label>
+                  <select id="reportLanguage">
+                    <option value="zh">中文</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+              </div>
+              <div class="btn-group mt-sm">
+                <button id="reportGenerateButton" class="btn btn-primary">生成调研报告</button>
+                <button id="reportRefreshButton" class="btn btn-ghost">刷新报告列表</button>
+              </div>
+            </div>
+
+            <div class="card mt-sm">
+              <p class="eyebrow">RAG Writing</p>
+              <p class="text-sm text-muted">写作功能已拆成独立工作台，支持导入 LaTeX 项目、基于证据生成初稿、编译预览。</p>
+              <a href="/writing" class="btn btn-secondary mt-sm" style="display:inline-flex;text-decoration:none">打开写作工作台</a>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right: Output Area -->
+        <section class="workspace-output">
+          <!-- Status Cards -->
+          <div class="home-stats">
+            <div class="stat-card">
+              <span>状态</span>
+              <strong id="missionStatus">等待任务</strong>
+              <p id="missionDetail" class="text-xs text-muted mt-sm">输入研究目标后，系统会生成配置补丁和检索计划。</p>
+            </div>
+            <div class="stat-card">
+              <span>下载队列</span>
+              <strong id="queueCount">0</strong>
+              <p id="queueDetail" class="text-xs text-muted mt-sm">正在读取浏览器下载队列...</p>
+            </div>
+            <div class="stat-card">
+              <span>最新检索</span>
+              <strong id="resultCount">0</strong>
+              <p id="resultDetail" class="text-xs text-muted mt-sm">尚未运行批量检索。</p>
+            </div>
+          </div>
+
+          <!-- ═══ Research Tab Output ═══ -->
+          <div id="output-research" class="workspace-panel">
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Conversation</p><h2>规划与配置回应</h2></div>
+              </div>
+              <div id="chatOutput" class="prose-output">等待输入...</div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-header">
+                  <div><p class="eyebrow">Patch</p><h2>建议配置补丁</h2></div>
+                </div>
+                <pre id="patchOutput">{}</pre>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <div><p class="eyebrow">Plan</p><h2>智能体计划</h2></div>
+                </div>
+                <div id="planCards">
+                  <p class="empty-state">暂无计划。</p>
+                </div>
+                <details class="mt-sm">
+                  <summary>查看原始计划 JSON</summary>
+                  <pre id="planOutput">{}</pre>
+                </details>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Search</p><h2>最新检索结果</h2></div>
+              </div>
+              <div id="resultList" class="result-list">
+                <p class="empty-state">等待检索...</p>
+              </div>
+              <details class="mt-sm">
+                <summary>查看检索原始 JSON</summary>
+                <pre id="searchOutput">等待检索...</pre>
+              </details>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Config</p><h2>配置预览</h2></div>
+              </div>
+              <pre id="configOutput">loading...</pre>
+            </div>
+          </div>
+
+          <!-- ═══ Attention Tab Output ═══ -->
+          <div id="output-attention" class="workspace-panel is-hidden">
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Jobs</p><h2>注意力任务</h2></div>
+              </div>
+              <div id="attentionJobs" class="result-list">
+                <p class="empty-state">还没有自动化注意力任务。</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Results</p><h2>高优先级摘要与日程</h2></div>
+              </div>
+              <div id="attentionResults" class="result-list">
+                <p class="empty-state">任务完成后会显示高优先级摘要和日程文件。</p>
+              </div>
+              <details class="mt-sm">
+                <summary>查看注意力任务原始 JSON</summary>
+                <pre id="attentionOutput">{}</pre>
+              </details>
+            </div>
+          </div>
+
+          <!-- ═══ Reports Tab Output ═══ -->
+          <div id="output-reports" class="workspace-panel is-hidden">
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Survey Reports</p><h2>近期调研报告</h2></div>
+              </div>
+              <div id="reportList" class="result-list">
+                <p class="empty-state">尚未生成调研报告。</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Preview</p><h2>报告预览</h2></div>
+              </div>
+              <div id="reportPreview" class="prose-output">生成后会在这里显示最新报告摘要。</div>
+              <details class="mt-sm">
+                <summary>查看调研报告原始 JSON</summary>
+                <pre id="reportOutput">{}</pre>
+              </details>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div><p class="eyebrow">Writing Results</p><h2>最近写作结果</h2></div>
+              </div>
+              <div id="writingResults" class="result-list">
+                <p class="empty-state">请进入独立写作页执行 RAG 写作和 LaTeX 改稿。</p>
+              </div>
+              <details class="mt-sm">
+                <summary>查看写作工作流原始 JSON</summary>
+                <pre id="writingOutput">{}</pre>
+              </details>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

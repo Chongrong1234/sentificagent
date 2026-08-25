@@ -25,12 +25,28 @@ Main responsibilities:
 - persist capture records under a stable local schema
 - import or reconcile downloaded PDFs
 - expose library search and graph APIs
+- run the `elfeed`-style attention workflow: feed discovery, score filtering, article
+  fetch, AI summary, and scheduled reading tasks
 
 Recommended storage model:
 
 - metadata is canonical
 - PDFs are files attached to a paper record
 - graph edges are stored separately from raw paper metadata
+- normalized SQLite tables keep the searchable attention DB:
+  `workflow_runs`, `papers`, `paper_scores`, `article_texts`, `summaries`, and
+  `reading_tasks`
+
+Reference workflow mapping:
+
+- GPT2Org/browser capture -> `apps/browser-extension/` and `/api/capture`
+- elfeed feed discovery -> `configs/attention_feeds.yaml` and `discover_papers`
+- elfeed-score ranking -> `score_paper_relevance`
+- article-summarizer -> `tools/article-summarizer/` with Playwright + Readability
+- elfeed metadata summary -> `summaries` table plus JSON summary artifacts
+- org-capture schedule -> `reading_tasks` table plus generated `.org` files
+- elfeed-summary-db/RAG seed -> `data/library/library.sqlite3` and
+  `/api/library/search`
 
 ## Phase 3: LangGraph runtime
 
@@ -50,6 +66,19 @@ Suggested graph nodes:
 - `keyword`
 - `method`
 - `dataset`
+
+Current writing graph:
+
+- `planner`: Kimi planner turns a user writing goal into structured workflow JSON.
+- `literature`: optionally runs the attention pipeline to crawl/summarize fresh
+  literature.
+- `rag`: retrieves local evidence from `data/library/library.sqlite3`.
+- `runner`: Kimi runner writes evidence-grounded LaTeX.
+- `compile`: local TeX engine compiles `manuscript.tex` to PDF when available.
+
+This graph uses LangGraph when installed and falls back to the same ordered node
+execution when the dependency is unavailable, so the workflow remains runnable in
+minimal local environments.
 
 Suggested edge types:
 

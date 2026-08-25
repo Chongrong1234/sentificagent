@@ -1,0 +1,62 @@
+query: large language model multimodal chain of thought debate crop growth model artificial intelligence agriculture remote sensing
+include_search: false
+include_references: true
+reference_seed_limit: 4
+references_per_paper: 20
+reference_min_seed_score: 8.0
+max_results: 80
+summarize_min_score: 8.0
+summarize_limit: 12
+interval_seconds: 3600
+force_refresh: false
+manual_urls: []
+feed_urls:
+  - https://export.arxiv.org/api/query?search_query=all:%22smart%20agriculture%22%20OR%20all:%22precision%20agriculture%22%20OR%20all:%22agricultural%20artificial%20intelligence%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22remote%20sensing%22%20AND%20all:%22agriculture%22%20OR%20all:%22crop%20monitoring%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22large%20language%20model%22%20OR%20all:%22multimodal%20large%20language%20model%22%20OR%20all:%22vision-language%20model%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22chain%20of%20thought%22%20OR%20all:%22reasoning%20model%22%20OR%20all:%22test-time%20scaling%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22multi-agent%20debate%22%20OR%20all:%22LLM%20debate%22%20OR%20all:%22agent%20debate%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://export.arxiv.org/api/query?search_query=all:%22crop%20growth%20model%22%20OR%20all:WOFOST%20OR%20all:DSSAT%20OR%20all:APSIM%20OR%20all:%22process-based%20crop%20model%22&start=0&max_results=50&sortBy=submittedDate&sortOrder=descending
+  - https://rss.sciencedirect.com/publication/science/01681699
+  - https://rss.sciencedirect.com/publication/science/0308521X
+  - https://rss.sciencedirect.com/publication/science/03784290
+  - https://rss.sciencedirect.com/publication/science/01681923
+  - https://rss.sciencedirect.com/publication/science/00344257
+  - https://rss.sciencedirect.com/publication/science/09242716
+  - https://dblp.org/feed/streams/conf/nips.rss
+  - https://dblp.org/feed/streams/conf/icml.rss
+  - https://dblp.org/feed/streams/conf/iclr.rss
+  - https://dblp.org/feed/streams/conf/aaai.rss
+  - https://dblp.org/feed/streams/conf/ijcai.rss
+  - https://dblp.org/feed/streams/conf/acl.rss
+  - https://dblp.org/feed/streams/conf/cvpr.rss
+  - https://dblp.org/feed/streams/conf/iccv.rss
+  - https://dblp.org/feed/streams/conf/emnlp.rss
+  - https://dblp.org/feed/streams/conf/eccv.rss
+  - https://dblp.org/feed/streams/conf/colt.rss
+  - https://dblp.org/feed/streams/conf/ecai.rss
+  - https://dblp.org/feed/streams/conf/icra.rss
+  - https://dblp.org/feed/streams/conf/aips.rss
+  - https://dblp.org/feed/streams/conf/aistats.rss
+  - https://dblp.org/feed/streams/conf/accv.rss
+  - https://dblp.org/feed/streams/conf/acml.rss
+  - https://dblp.org/feed/streams/conf/bmvc.rss
+  - https://dblp.org/feed/streams/conf/nlpcc.rss
+  - https://dblp.org/feed/streams/conf/conll.rss
+  - https://dblp.org/feed/streams/conf/gecco.rss
+  - https://dblp.org/feed/streams/conf/ictai.rss
+  - https://dblp.org/feed/streams/conf/iros.rss
+  - https://dblp.org/feed/streams/conf/alt.rss
+  - https://dblp.org/feed/streams/conf/kdd.rss
+  - https://dblp.org/feed/streams/conf/sigir.rss
+  - https://dblp.org/feed/streams/conf/sigmod.rss
+  - https://dblp.org/feed/streams/conf/vldb.rss
+  - https://dblp.org/feed/streams/conf/icde.rss
+  - https://dblp.org/feed/streams/conf/www.rss
+  - https://dblp.org/feed/streams/conf/cikm.rss
+  - https://dblp.org/feed/streams/conf/wsdm.rss
+  - https://dblp.org/feed/streams/conf/icdm.rss
+  - https://dblp.org/feed/streams/conf/sdm.rss
+  - https://dblp.org/feed/streams/conf/edbt.rss
+  - https://dblp.org/feed/streams/conf/dasfaa.rss
+  - https://dblp.org/feed/streams/conf/pakdd.rss

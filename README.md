@@ -40,6 +40,37 @@ scripts/                   local entrypoints
 src/literature_agent/      capture service and core logic
 ```
 
+## Quick start (recommended)
+
+Python 3.10+ is supported. Install the project in editable mode so the
+`scientific-agent` command is available from any directory:
+
+```bash
+python3 -m pip install -e .
+scientific-agent init       # creates configs/library_rules.yaml
+scientific-agent check      # validates configuration and local tools
+scientific-agent serve      # starts http://127.0.0.1:8765
+```
+
+The checked-in `configs/library_rules.example.yaml` is a read-only template.
+The generated `configs/library_rules.yaml` is ignored by Git and is where the
+web UI writes user preferences. Every command accepts `--config PATH` when a
+separate profile is needed. Use `scientific-agent --help` or
+`scientific-agent <command> --help` for all options.
+
+Common non-interactive commands are:
+
+```bash
+scientific-agent search "multimodal remote sensing" --max-results 20
+scientific-agent attention --query "smart agriculture"
+scientific-agent library "smart agriculture" --limit 10
+scientific-agent report "crop monitoring" --language zh
+scientific-agent research "撰写移动巡检路面病害检测开题报告" --crawl
+```
+
+The existing `scripts/*.py` entry points remain supported for automation and
+backward compatibility.
+
 ## Run the local app
 
 ```bash
@@ -48,6 +79,13 @@ python3 scripts/run_capture_server.py
 
 The service listens on `http://127.0.0.1:8765`.
 Open `http://127.0.0.1:8765` for the local chat UI.
+
+The web UI is designed as an AGI lab console:
+
+- layer 1: browser literature capture and authenticated PDF downloads
+- layer 2: automated literature search, ranking, tagging, and queue creation
+- layer 3: local metadata/PDF library for future RAG and graph workflows
+- layer 4: Kimi-powered research agent that proposes config patches and search plans
 
 Recommended first use:
 
@@ -140,6 +178,196 @@ Artifacts written by the batch pipeline:
 - browser download queues: `data/library/queue/`
 - per-paper metadata: `data/library/records/.../metadata.json`
 - downloaded PDFs: `data/library/records/.../paper.pdf`
+
+## Attention automation workflow
+
+The local app also includes an `elfeed`/`article-summarizer` style attention
+pipeline for precise literature intake:
+
+1. discover papers from RSS/Atom feeds, manual URLs, or OpenAlex/arXiv search
+2. rank papers with your configured topics, venues, teams, keywords, and field weights
+3. fetch readable article text in the background
+4. summarize high-priority papers asynchronously with the configured Kimi/OpenAI-compatible API
+5. fall back to extractive summaries when no API key is available
+6. export JSON summaries and an Org-mode schedule file for follow-up reading
+
+The original reference stack uses `elfeed` + `elfeed-score` for discovery and
+priority ranking, then `article-summarizer` uses Playwright Firefox + Mozilla
+Readability + an OpenAI-compatible chat API for webpage extraction and summary.
+This project implements the same workflow inside the Python local service. The
+current default fetcher is a standard-library HTML reader, while the browser
+extension remains responsible for authenticated pages and PDF downloads.
+
+How to run:
+
+1. Start the service with `python3 scripts/run_capture_server.py`.
+2. Open `http://127.0.0.1:8765`.
+3. In `自动化精准抓取`, provide at least one of:
+   - a literature query
+   - RSS/Atom feed URLs, one per line
+   - manual article or paper URLs, one per line
+4. Set the summary threshold and summary count.
+5. Click `启动全流程`.
+6. Refresh the task panel until the job is completed.
+
+Artifacts written by the attention pipeline:
+
+- full run logs: `data/library/attention_runs/`
+- high-priority summaries: `data/library/summaries/`
+- Org-mode follow-up schedule: `data/library/schedules/`
+- normalized searchable library: `data/library/library.sqlite3`
+
+File-driven mode:
+
+1. Edit subscriptions and attention thresholds in `configs/attention_feeds.yaml`.
+2. Keep `configs/library_rules.example.yaml` pointing to it via `attention.feeds_config`.
+3. Run the full pipeline without the web UI:
+
+```bash
+python3 scripts/run_attention_pipeline.py
+```
+
+For continuous automation:
+
+```bash
+python3 scripts/run_attention_daemon.py
+```
+
+The daemon reloads the config every cycle, so editing `configs/attention_feeds.yaml`
+takes effect on the next run. It writes `data/library/attention_state/seen.json`
+and skips already-seen feed entries by default. Set `force_refresh: true` in the
+feed config if you intentionally want to reprocess everything.
+
+This mode follows the reference `elfeed` workflow more closely: the feed file is the
+source of truth, the configured score threshold decides which items are summarized,
+and the generated `.org` file is the reading schedule.
+
+## Searchable local summary DB
+
+The literature intake layer now mirrors the referenced `elfeed` +
+`article-summarizer` + `elfeed-summary-db` workflow inside the project:
+
+1. feeds, manual URLs, and optional OpenAlex/arXiv search discover entries
+2. configured relevance rules score entries like `elfeed-score`
+3. selected entries are fetched through `tools/article-summarizer` with
+   Playwright Firefox and Mozilla Readability when available
+4. AI summaries are attached to the same paper record; if the LLM call fails, the run fails directly
+5. follow-up reading tasks are written to both Org-mode and SQLite
+6. titles, abstracts, authors, article text, and summaries are searchable
+
+Inspect the local DB:
+
+```bash
+python3 scripts/search_library.py "smart agriculture" 10
+```
+
+The service also exposes:
+
+```text
+GET /api/library/search?q=smart%20agriculture&limit=10
+```
+
+Core tables in `data/library/library.sqlite3`:
+
+- `workflow_runs`: every search or attention run
+- `papers`: normalized paper/feed entries
+- `paper_scores`: relevance score, priority, matched fields, and tags
+- `article_texts`: fetched Readability/HTML text and fetch status
+- `summaries`: AI-generated summaries
+- `reading_tasks`: scheduled follow-up tasks exported to Org-mode
+
+## Planner/runner RAG writing workflow
+
+The project includes an end-to-end research writing workflow:
+
+1. Kimi planner turns a writing goal into a structured workflow plan.
+2. Optional literature intake crawls/searches fresh papers before writing.
+3. Local RAG retrieves evidence from `data/library/library.sqlite3`.
+4. Kimi runner writes a self-contained LaTeX manuscript or grant draft.
+5. The local compiler writes `manuscript.pdf` when `xelatex`, `pdflatex`, or
+   `tectonic` is installed.
+
+The workflow uses LangGraph when the `langgraph` package is installed. If it is
+not installed, the same nodes run sequentially instead of via LangGraph.
+
+Runtime dependencies:
+
+- `langgraph` for explicit graph orchestration
+- `xelatex` for Chinese LaTeX output, or `pdflatex`/`tectonic` for English-only
+  drafts
+- `KIMI_API_KEY` for planner and runner model calls
+
+Command-line example:
+
+```bash
+export KIMI_API_KEY="your-real-key"
+python3 scripts/run_research_workflow.py \
+  "基于本地遥感 VLM 文献库，撰写一份智慧农业多模态遥感综述草稿" \
+  --query "remote sensing vision language smart agriculture" \
+  --writing-type academic
+```
+
+Grant proposal mode:
+
+```bash
+python3 scripts/run_research_workflow.py \
+  "撰写一个面向智慧农业多模态遥感基础模型的青年基金申请草稿" \
+  --query "remote sensing foundation model smart agriculture" \
+  --writing-type grant
+```
+
+Artifacts are written under:
+
+```text
+data/library/writing_runs/<run-id>/
+```
+
+Expected files:
+
+- `plan.json`: planner workflow
+- `evidence.json`: local RAG evidence
+- `manuscript.tex`: runner LaTeX output
+- `manuscript.pdf`: compiled PDF when a TeX engine is available
+
+The web UI exposes the same workflow under `RAG 写作与 LaTeX`.
+
+The dedicated writing workspace under `/writing` adds a template library layer:
+
+- choose an existing local LaTeX template before writing
+- ask the agent to resolve a missing template by name
+- if the template is not already in the local library, the service can resolve
+  a CTAN package or GitHub repository and download it into
+  `data/library/template_library/`
+- downloaded template directories are added to `TEXINPUTS` automatically during
+  local LaTeX compilation so custom `.cls`/`.sty` files can be found
+
+## Native elfeed workflow
+
+For the workflow that directly follows the reference article, use:
+
+```text
+tools/elfeed/
+tools/article-summarizer/
+```
+
+This path uses real `elfeed`, `elfeed-score`, Playwright Firefox, Mozilla
+Readability, OpenAI-compatible summaries, elfeed metadata write-back, and Org
+schedule export. See `tools/elfeed/README.md`.
+
+Minimum setup:
+
+```bash
+cd tools/article-summarizer
+npm install
+npx playwright install firefox
+```
+
+Then load `tools/elfeed/init-example.el` from Emacs and run:
+
+```elisp
+M-x scientific-agent-configure-feeds
+M-x elfeed-update
+```
 
 ## Load the browser extension
 
