@@ -4,6 +4,9 @@ configs/library_rules.yaml
 .env
 data/
 *.log
+build/
+dist/
+*.egg-info/
 .pytest_cache/
 __pycache__/
 *.pyc

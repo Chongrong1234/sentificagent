@@ -389,5 +389,20 @@ library structure needed by later import, graph construction, and LLM workflows.
 
 ```bash
 docker build -t scientific-agent .
-docker run --rm -p 8765:8765 -e KIMI_API_KEY=your-real-key scientific-agent
+docker run --rm -p 8765:8765 \
+  -v "$PWD/configs:/app/configs" \
+  -v "$PWD/data:/app/data" \
+  -e KIMI_API_KEY=your-real-key \
+  scientific-agent
 ```
+
+The image includes a `/health` healthcheck. Mount `configs/` and `data/` when
+you want user preferences and downloaded library artifacts to survive container
+restarts. Secrets are intentionally excluded from the build context.
+
+## Development and testing
+
+Run `make test` (or `python3 -m unittest discover -s tests -p 'test_*.py'`) before submitting changes. If pytest is installed, `pytest -q` is also supported. The manual workflow
+smoke test is intentionally excluded from automatic discovery because it writes a
+temporary project and may need a local TeX compiler; run it explicitly with
+`python3 scripts/e2e_deep_learning_check.py` when those prerequisites are available.

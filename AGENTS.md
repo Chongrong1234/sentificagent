@@ -7,7 +7,7 @@
 - `apps/browser-extension/` is the Chrome/Edge capture and download extension; `apps/web/` is the local HTML/CSS/JavaScript console.
 - `configs/` holds user-owned YAML rules, feeds, and writing guardrails. Keep secrets in `.secrets/` (ignored by Git).
 - `tests/` contains Python `unittest` coverage. Runtime artifacts are written under ignored `data/`; design notes live in `docs/`.
-- `pyproject.toml` defines install metadata and the `scientific-agent` CLI; `Makefile` provides short local aliases.
+- `pyproject.toml`/`setup.py` define install metadata and the `scientific-agent` CLI; `Makefile` provides short local aliases.
 
 ## Build, Test, and Development Commands
 
