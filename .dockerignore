@@ -1,0 +1,12 @@
+.git/
+.gitignore
+.secrets/
+.claude/
+.codex
+data/
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/

@@ -1,5 +1,14 @@
 .codex
 .secrets/
+configs/library_rules.yaml
+.env
 data/
+*.log
+.pytest_cache/
 __pycache__/
 *.pyc
+.claude/
+node_modules/
+.venv/
+*.egg-info/
+.DS_Store
