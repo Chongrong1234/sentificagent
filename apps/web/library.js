@@ -189,7 +189,7 @@ function renderTopicPanel(topicData) {
   if (!topicData || !topicData.topic) {
     setText("activeTopicTitle", "尚未选择主题");
     setText("activeTopicMeta", "点击图谱节点或左侧主题列表");
-    byId("topicPaperList").innerHTML = '<p class="empty-state">选中主题后，这里会显示相关论文列表。</p>';
+    byId("topicPaperList").innerHTML = '<p class="empty-state">选中主题后显示相关论文。</p>';
     return;
   }
 
@@ -212,7 +212,7 @@ function detailMetaLine(label, value) {
 function renderPaperDetail(item) {
   const container = byId("paperDetailPanel");
   if (!item) {
-    container.innerHTML = '<p class="empty-state">点开论文后，这里会显示题目、分数、摘要、PDF 与原文链接。</p>';
+    container.innerHTML = '<p class="empty-state">选择论文后显示详情。</p>';
     return;
   }
 

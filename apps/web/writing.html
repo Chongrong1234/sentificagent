@@ -65,7 +65,7 @@
             <div>
               <p class="eyebrow">Current Section</p>
               <h1 id="currentSectionTitle">选择或创建项目</h1>
-              <p id="currentSectionMeta" class="writing-section-meta">点击「+ 新建项目」创建写作项目，上传模板后可自动分析章节结构。</p>
+              <p id="currentSectionMeta" class="writing-section-meta">新建或选择项目后开始。</p>
             </div>
             <div class="btn-group">
               <button id="saveSectionDraftButton" class="btn btn-ghost btn-sm">保存草稿</button>
@@ -102,7 +102,7 @@
                 <div id="explorationInsights" class="insight-list mt-sm">
                   <article class="insight-item insight-item-info">
                     <strong>操作提示</strong>
-                    <p>先生成勘探报告，再从建议里确认选题方向。</p>
+                    <p>生成勘探报告后确认选题方向。</p>
                   </article>
                 </div>
               </article>
@@ -117,7 +117,7 @@
                 <div id="explorationSuggestionList" class="writing-choice-list">
                   <article class="writing-choice-card is-empty">
                     <strong>还没有选题建议</strong>
-                    <p>生成勘探报告后，这里会显示 2-3 个选题方向。</p>
+                    <p>生成勘探报告后显示选题方向。</p>
                   </article>
                 </div>
                 <div class="form-group mt-sm">
@@ -145,7 +145,7 @@
                 <div id="negotiationChoiceList" class="writing-choice-list mt-sm">
                   <article class="writing-choice-card is-empty">
                     <strong>等待章节加载</strong>
-                    <p>选择章节后显示协商策略选项。</p>
+                    <p>选择章节后显示协商策略。</p>
                   </article>
                 </div>
                 <div class="form-group mt-sm">
@@ -163,13 +163,13 @@
                   <div>
                     <p class="eyebrow">Order</p>
                     <h2>写作顺序</h2>
-                    <p class="writing-text-muted">可以直接用推荐顺序，也可以手动调整章节先后。</p>
+                    <p class="writing-text-muted">使用推荐顺序或手动调整。</p>
                   </div>
                 </div>
                 <div id="writingOrderList" class="writing-order-list">
                   <article class="writing-order-item is-empty">
                     <strong>等待协商完成</strong>
-                    <p>逐章协商完成后，这里会给出推荐写作顺序。</p>
+                    <p>协商完成后给出推荐顺序。</p>
                   </article>
                 </div>
                 <div class="btn-group mt-sm">
@@ -202,7 +202,7 @@
                 <div id="sectionAuditList" class="insight-list mt-sm">
                   <article class="insight-item insight-item-info">
                     <strong>写作提示</strong>
-                    <p>可以先手动编辑，再用 AI 续写或重写当前章节。</p>
+                    <p>可手动编辑，或用 AI 续写、重写。</p>
                   </article>
                 </div>
               </article>
@@ -250,7 +250,7 @@
             <div id="evidenceList" class="writing-evidence-list">
               <article class="writing-evidence-card is-empty">
                 <strong>还没有证据卡</strong>
-                <p>章节上下文加载后显示相关文献与证据摘要。</p>
+                <p>加载章节上下文后显示证据。</p>
               </article>
             </div>
           </article>
@@ -265,7 +265,7 @@
             <div id="citationReviewList" class="writing-evidence-list">
               <article class="writing-evidence-card is-empty">
                 <strong>当前没有待审核引用</strong>
-                <p>当章节中出现 `[待引用:N]` 占位符时，这里会显示候选文献与审批操作。</p>
+                <p>出现 `[待引用:N]` 占位符时显示候选文献。</p>
               </article>
             </div>
             <div class="btn-group mt-sm">
@@ -290,7 +290,7 @@
             <div id="guardrailViolationList" class="insight-list mt-sm">
               <article class="insight-item insight-item-info">
                 <strong>暂无护栏警告</strong>
-                <p>保存或生成后若有违规裁剪，会在这里列出。</p>
+                <p>保存或生成后列出违规项。</p>
               </article>
             </div>
           </article>
@@ -394,7 +394,7 @@
             <p>支持 .tex、.cls、.sty、.bib、图片、.zip</p>
             <input id="modalFileInput" type="file" multiple class="is-hidden">
           </label>
-          <p id="modalUploadHint" class="writing-text-muted mt-sm">上传 LaTeX 模板或项目压缩包后，系统会自动用 AI 分析章节结构。</p>
+          <p id="modalUploadHint" class="writing-text-muted mt-sm">上传后自动分析章节结构。</p>
         </div>
       </div>
       <div class="modal-footer">

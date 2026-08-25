@@ -566,7 +566,7 @@ function renderExploration(workflow) {
   if (insightsNode) {
     insightsNode.innerHTML = insights.length
       ? insights.map((item) => `<article class="insight-item insight-item-info"><strong>洞察</strong><p>${escapeHtml(item)}</p></article>`).join("")
-      : `<article class="insight-item insight-item-info"><strong>操作提示</strong><p>先生成勘探报告，再从建议里确认选题方向。</p></article>`;
+      : `<article class="insight-item insight-item-info"><strong>操作提示</strong><p>生成勘探报告后确认选题方向。</p></article>`;
   }
   if (listNode) {
     listNode.innerHTML = suggestions.length
@@ -580,7 +580,7 @@ function renderExploration(workflow) {
           <small>${escapeHtml(item.fit || "")}</small>
         </button>
       `).join("")
-      : `<article class="writing-choice-card is-empty"><strong>还没有选题建议</strong><p>生成勘探报告后，这里会显示 2-3 个选题方向。</p></article>`;
+      : `<article class="writing-choice-card is-empty"><strong>还没有选题建议</strong><p>生成勘探报告后显示选题方向。</p></article>`;
     listNode.querySelectorAll("[data-topic-id]").forEach((button) => {
       button.addEventListener("click", () => {
         selectedTopicId = button.dataset.topicId || "";
@@ -635,7 +635,7 @@ function renderOrderRecommendation(workflow) {
   const container = byId("writingOrderList");
   if (!container) return;
   if (!list.length) {
-    container.innerHTML = '<article class="writing-order-item is-empty"><strong>等待协商完成</strong><p>逐章协商完成后，这里会给出推荐写作顺序。</p></article>';
+    container.innerHTML = '<article class="writing-order-item is-empty"><strong>等待协商完成</strong><p>协商完成后给出推荐顺序。</p></article>';
     return;
   }
   container.innerHTML = list.map((item, index) => `
@@ -721,7 +721,7 @@ function renderEvidence(section) {
   if (!container) return;
   const items = Array.isArray(section?.evidence_cards) ? section.evidence_cards : [];
   if (!items.length) {
-    container.innerHTML = '<article class="writing-evidence-card is-empty"><strong>当前章节还没有证据卡</strong><p>生成或加载章节上下文后，系统会展示相关文献证据。</p></article>';
+    container.innerHTML = '<article class="writing-evidence-card is-empty"><strong>当前章节还没有证据卡</strong><p>加载章节上下文后显示证据。</p></article>';
     return;
   }
   container.innerHTML = items.map((item) => `
@@ -742,7 +742,7 @@ function renderCitationReview(section) {
   const items = Array.isArray(section?.pending_citations) ? section.pending_citations : [];
   if (!items.length) {
     citationSelections = {};
-    container.innerHTML = '<article class="writing-evidence-card is-empty"><strong>当前没有待审核引用</strong><p>当章节中出现 `[待引用:N]` 占位符时，这里会显示候选文献与审批操作。</p></article>';
+    container.innerHTML = '<article class="writing-evidence-card is-empty"><strong>当前没有待审核引用</strong><p>出现 `[待引用:N]` 占位符时显示候选文献。</p></article>';
     return;
   }
   const nextSelections = {};
@@ -797,7 +797,7 @@ function renderGuardrailViolations(section) {
   if (!container) return;
   const items = Array.isArray(section?.guardrails?.violations) ? section.guardrails.violations : [];
   if (!items.length) {
-    container.innerHTML = '<article class="insight-item insight-item-info"><strong>暂无护栏警告</strong><p>保存或生成后若有违规裁剪，会在这里列出。</p></article>';
+    container.innerHTML = '<article class="insight-item insight-item-info"><strong>暂无护栏警告</strong><p>保存或生成后列出违规项。</p></article>';
     return;
   }
   container.innerHTML = items.map((item) => `
@@ -858,7 +858,7 @@ function renderSectionAudit(issues) {
   const container = byId("sectionAuditList");
   if (!container) return;
   if (!Array.isArray(issues) || !issues.length) {
-    container.innerHTML = '<article class="insight-item insight-item-info"><strong>写作提示</strong><p>可以先手动编辑，再用 AI 续写或重写当前章节。</p></article>';
+    container.innerHTML = '<article class="insight-item insight-item-info"><strong>写作提示</strong><p>可手动编辑，或用 AI 续写、重写。</p></article>';
     return;
   }
   container.innerHTML = issues.map((item) => `
@@ -1771,7 +1771,7 @@ function openNewProjectModal() {
     : '<option value="">手动上传 / 无模板</option>';
   byId("modalTopic").value = "";
   byId("modalFileInput").value = "";
-  byId("modalUploadHint").textContent = "上传 LaTeX 模板或项目压缩包后，系统会自动用 AI 分析章节结构。";
+  byId("modalUploadHint").textContent = "上传后自动分析章节结构。";
   byId("newProjectOverlay").classList.remove("is-hidden");
   byId("newProjectModal").classList.remove("is-hidden");
 }
