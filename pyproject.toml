@@ -1,23 +1,6 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=59"]
 build-backend = "setuptools.build_meta"
-
-[project]
-name = "scientific-agent"
-version = "0.1.0"
-description = "Local literature intake, research planning, and writing workspace"
-readme = "README.md"
-requires-python = ">=3.10"
-dependencies = [
-  "PyYAML>=6.0",
-  "langgraph>=0.2.0",
-]
-
-[project.scripts]
-scientific-agent = "literature_agent.cli:main"
-
-[tool.setuptools.packages.find]
-where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
