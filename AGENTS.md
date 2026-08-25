@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-- `src/literature_agent/` contains the Python capture service, search/attention pipelines, library storage, citation and writing workflows.
+- `src/literature_agent/` contains the Python capture service, search/attention pipelines, library storage, citation and writing workflows. `knowledge_sync.py` syncs the library into Obsidian vaults and Lark Drive (via `lark-cli`) as Markdown notes with PDF download links only.
 - `scripts/` provides runnable entry points, including `run_capture_server.py`, `run_attention_pipeline.py`, `run_research_workflow.py`, and `search_library.py`.
 - `apps/browser-extension/` is the Chrome/Edge capture and download extension; `apps/web/` is the local HTML/CSS/JavaScript console.
 - `configs/` holds user-owned YAML rules, feeds, and writing guardrails. Keep secrets in `.secrets/` (ignored by Git).

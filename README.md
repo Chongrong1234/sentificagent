@@ -66,7 +66,27 @@ scientific-agent attention --query "smart agriculture"
 scientific-agent library "smart agriculture" --limit 10
 scientific-agent report "crop monitoring" --language zh
 scientific-agent research "撰写移动巡检路面病害检测开题报告" --crawl
+scientific-agent kb sync        # sync the library into Obsidian / Lark as Markdown notes
 ```
+
+### Knowledge base sync (Obsidian + Lark)
+
+`scientific-agent kb sync` renders the local library as Markdown notes — one
+note per paper, one index note per topic, plus a library home note. Notes keep
+metadata, abstract, AI summary and the **PDF download link only**; PDF files
+are never copied into the knowledge base.
+
+- Obsidian: notes are written under `<vault>/Literature/` (papers/, topics/).
+  The vault is auto-detected from `~/.config/obsidian/obsidian.json`, or set
+  `knowledge_base.obsidian.vault` in `configs/library_rules.yaml` (pass
+  `--vault PATH` to override once). Re-running only rewrites changed notes.
+- Lark/Feishu: install the official CLI with `npm install -g @larksuite/cli`,
+  then run `lark-cli config init` and `lark-cli auth login --recommend` once,
+  and set `knowledge_base.lark.enabled: true` (optionally `folder_token`).
+  Notes are uploaded as Drive-native Markdown files; the paper→file mapping is
+  kept in `data/library/kb_sync/lark_files.json` so re-runs overwrite instead
+  of duplicating. Use `scientific-agent kb sync --lark` to sync only Lark, and
+  `scientific-agent kb status` to inspect the resolved configuration.
 
 The existing `scripts/*.py` entry points remain supported for automation and
 backward compatibility.
